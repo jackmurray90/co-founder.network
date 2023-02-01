@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<form class="center" action="/cv/delete" method="post">
+<form class="center" action="/pages/delete" method="post">
   {{ csrf|safe }}
   <p>{{ tr['are_you_sure_delete'] }}</p>
   <p><input type="submit" value="{{ tr['yes_delete'] }}"/> <a href="/">{{ tr['no_get_me_out'] }}</a></p>

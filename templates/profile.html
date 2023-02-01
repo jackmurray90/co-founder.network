@@ -20,7 +20,7 @@
               {% endif %}
             {% endif %}
             {% if user and profile.id == user.id %}
-              <a class="edit" href="/cv/edit-basic-info">{{ tr['edit_basic_info'] }}</a>
+              <a class="edit" href="/cv/edit-profile">{{ tr['edit_basic_info'] }}</a>
             {% endif %}
           </h1>
         </td>
@@ -36,7 +36,7 @@
         {% endif %}
       {% endif %}
       {% if user and profile.id == user.id %}
-        <a class="edit" href="/cv/edit-basic-info">{{ tr['edit_basic_info'] }}</a>
+        <a class="edit" href="/cv/edit-profile">{{ tr['edit_basic_info'] }}</a>
       {% endif %}
     </h1>
   {% endif %}

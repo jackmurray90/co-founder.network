@@ -28,15 +28,13 @@
   #nav form { margin: 0; display: inline; }
   #nav input { font-family: serif; white-space: nowrap; font-size: 16px; background-color: transparent; border: none; color: #9cf; padding: 0 2em; cursor: pointer; }
   #nav { margin-bottom: 1em; }
-  .skills span, .classes span { padding: 0.2em; display: inline-block; margin: 0.2em; border-radius: 0.2em; background-color: #eeeef3; color: #555; border: #ccc; white-space: nowrap; }
-  .classes span { background-color: #f3eeee; }
   .contact strong { margin-left: 2em; }
   table { margin-top: 1em; border-collapse: collapse; }
   td, th { border: 1px solid #ccc; padding: 0.5em; }
   th { font-weight: normal; }
   li { margin-bottom: 0.5em; }
 </style>
-<meta name="description" content="CV Network: Showcase your work."/>
+<meta name="description" content="Co-Founder Network: Build your startup team."/>
 <meta name=”robots” content="index, follow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta charset="UTF-8"/>
@@ -62,28 +60,28 @@
   }
 </script>
 {% block head %}{% endblock %}
-<title>{% block title %}CV Network{% endblock %}</title>
+<title>{% block title %}Co-Founder Network{% endblock %}</title>
 <div id="nav">
-  <span id="nav-header">CV Network</span>
+  <span id="nav-header">Co-Founder Network</span>
   {% if user %}
     <span>{{ tr['logged_in_as'] }} {{ user.email }}</span>
     <a href="/">{{ tr['browse'] }}</a>
     {% if user.username %}
-      <a href="/{{ user.username }}">{{ tr['view_cv'] }}</a>
+      <a href="/{{ user.username }}">{{ tr['view_profile'] }}</a>
     {% else %}
-      <a href="/{{ user.id }}">{{ tr['view_cv'] }}</a>
+      <a href="/{{ user.id }}">{{ tr['view_profile'] }}</a>
     {% endif %}
     {% if user.admin %}
-      <a href="/cv/referrers">{{ tr['referrers'] }}</a>
+      <a href="/pages/referrers">{{ tr['referrers'] }}</a>
     {% endif %}
-    <form action="/cv/logout" method="post">
+    <form action="/pages/logout" method="post">
       {{ csrf|safe }}
       <input type="submit" value="{{ tr['logout'] }}"/>
     </form>
   {% else %}
     <a href="/">{{ tr['browse'] }}</a>
-    <a href="/cv/sign-up">{{ tr['sign_up'] }}</a>
-    <a href="/cv/login">{{ tr['login'] }}</a>
+    <a href="/pages/sign-up">{{ tr['sign_up'] }}</a>
+    <a href="/pages/login">{{ tr['login'] }}</a>
   {% endif %}
 </div>
 {% block content %}{% endblock %}

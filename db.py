@@ -6,92 +6,34 @@ Base = declarative_base()
 class User(Base):
   __tablename__ = 'users'
   id = Column(Integer, primary_key=True)
-  name = Column(String, default='')
   username = Column(String, unique=True)
+  name = Column(String, default='')
+  city = Column(String, default='')
+  cv = Column(String, default='')
+  about = Column(Text, default='')
   open = Column(Boolean, default=False)
+  show_email = Column(Boolean, default=False)
+  show_profile = Column(Boolean, default=False)
   api_key = Column(String)
   email = Column(String)
   email_verified = Column(Boolean, default=False)
   admin = Column(Boolean, default=False)
-  phone = Column(String, default='')
-  summary = Column(Text, default='')
-  profession = Column(Text, default='')
-  show_email = Column(Boolean, default=False)
-  experiences = relationship('Experience', order_by="[desc(Experience.end), desc(Experience.start), desc(Experience.id)]")
-  educations = relationship('Education', order_by="[desc(Education.end), desc(Education.start), desc(Education.id)]")
-  social_media = relationship('SocialMedia')
   views = relationship('View')
-
-class Company(Base):
-  __tablename__ = 'companies'
-  id = Column(Integer, primary_key=True)
-  user_id = Column(Integer, ForeignKey('users.id'))
-  name = Column(String, default='')
-  url = Column(String, default='')
-  description = Column(Text, default='')
 
 class Job(Base):
   __tablename__ = 'jobs'
   id = Column(Integer, primary_key=True)
-  company_id = Column(Integer, ForeignKey('companies.id'))
-  location = Column(String)
-  job_type = Column(String)
-  description = Column(String)
-  salary_low = Column(Integer)
-  salary_high = Column(Integer)
-
-class Experience(Base):
-  __tablename__ = 'experiences'
-  id = Column(Integer, primary_key=True)
   user_id = Column(Integer, ForeignKey('users.id'))
   name = Column(String, default='')
+  url = Column(String, default='')
   position = Column(String, default='')
-  url = Column(String, default='')
+  location = Column(String, default='')
+  share = Column(Numeric(6, 3))
+  vesting_frequency = Column(Integer)
+  vesting_peroid = Column(Integer)
   description = Column(Text, default='')
-  start = Column(Date)
-  end = Column(Date)
-  skills = relationship('Skill')
-
-class Education(Base):
-  __tablename__ = 'educations'
-  id = Column(Integer, primary_key=True)
-  user_id = Column(Integer, ForeignKey('users.id'))
-  institution = Column(String, default='')
-  url = Column(String, default='')
-  qualification = Column(String, default='')
-  gpa = Column(Numeric)
-  start = Column(Date)
-  end = Column(Date)
-  skills = relationship('Skill')
-  awards = relationship('Award')
-  classes = relationship('Class')
-
-class Award(Base):
-  __tablename__ = 'awards'
-  id = Column(Integer, primary_key=True)
-  education_id = Column(Integer, ForeignKey('educations.id'))
-  name = Column(String, default='')
-
-class Class(Base):
-  __tablename__ = 'classes'
-  id = Column(Integer, primary_key=True)
-  education_id = Column(Integer, ForeignKey('educations.id'))
-  name = Column(String, default='')
-
-class Skill(Base):
-  __tablename__ = 'skills'
-  id = Column(Integer, primary_key=True)
-  experience_id = Column(Integer, ForeignKey('experiences.id'))
-  education_id = Column(Integer, ForeignKey('educations.id'))
-  job_id = Column(Integer, ForeignKey('jobs.id'))
-  name = Column(String)
-
-class SocialMedia(Base):
-  __tablename__ = 'social_media'
-  id = Column(Integer, primary_key=True)
-  user_id = Column(Integer, ForeignKey('users.id'))
-  name = Column(String)
-  url = Column(String)
+  expiration = Column(Date)
+  paid = Column(Boolean, default=False)
 
 class LoginCode(Base):
   __tablename__ = 'login_codes'
@@ -109,5 +51,6 @@ class View(Base):
   __tablename__ = 'views'
   id = Column(Integer, primary_key=True)
   user_id = Column(Integer, ForeignKey('users.id'))
+  job_id = Column(Integer, ForeignKey('jobs.id'))
   remote_address = Column(String)
   timestamp = Column(Integer)

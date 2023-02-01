@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://cv.network/</loc></url>
+  <url><loc>https://co-founder.network/</loc></url>
   {% for user in users %}
     {% if user.username %}
-      <url><loc>https://cv.network/{{ user.username }}</loc></url>
+      <url><loc>https://co-founder.network/{{ user.username }}</loc></url>
     {% else %}
-      <url><loc>https://cv.network/{{ user.id }}</loc></url>
+      <url><loc>https://co-founder.network/{{ user.id }}</loc></url>
     {% endif %}
   {% endfor %}
 </urlset>

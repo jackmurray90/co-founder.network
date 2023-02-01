@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<form class="center" action="{% if sign_up %}/cv/sign-up{% else %}/cv/login{% endif %}" method="post">
-  <h1>CV  Network</h1>
+<form class="center" action="{% if sign_up %}/pages/sign-up{% else %}/pages/login{% endif %}" method="post">
+  <h1>Co-Founder Network</h1>
   {% if message %}
     <p>{{ message }}</p>
   {% endif %}
   {{ csrf|safe }}
   <p><input name="email" placeholder="{{ tr['email_address'] }}"/></p>
   {% if sign_up %}
-    <p><input name='terms' type='checkbox' value='true'/> {{ tr['agree_terms_1'] }} <a href="/cv/terms-and-conditions">{{ tr['terms_and_conditions'] }}</a> {{ tr['agree_terms_2'] }} <a href="/cv/privacy-policy">{{ tr['privacy_policy'] }}</a>.</p>
+    <p><input name='terms' type='checkbox' value='true'/> {{ tr['agree_terms_1'] }} <a href="/pages/terms-and-conditions">{{ tr['terms_and_conditions'] }}</a> {{ tr['agree_terms_2'] }} <a href="/pages/privacy-policy">{{ tr['privacy_policy'] }}</a>.</p>
   {% endif %}
   <p><input type="submit" value="{% if sign_up %}{{ tr['sign_up'] }}{% else %}{{ tr['login'] }}{% endif %}"/></p>
 </form>

@@ -5,14 +5,16 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from threading import Thread
 
-def send_email(recipient, subject, content):
+def send_email(recipient, subject, content, reply_to=None):
   def thread():
     with SMTP_SSL(SMTP_HOST, SMTP_PORT, context=create_default_context()) as server:
       server.login(SMTP_USERNAME, SMTP_PASSWORD)
       message = MIMEMultipart("alternative")
       message['Subject'] = subject
-      message['From'] = 'no-reply@cv.network'
+      message['From'] = 'no-reply@co-founder.network'
       message['To'] = recipient
+      if reply_to:
+        message['Reply-To'] = reply_to
       message.attach(MIMEText(content, 'html'))
-      server.sendmail("no-reply@cv.network", recipient, message.as_string())
+      server.sendmail("no-reply@co-founder.network", recipient, message.as_string())
   Thread(target=thread).start()

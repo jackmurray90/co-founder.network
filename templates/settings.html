@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block head %}
+  <style>
+    .grey-border { border: 1px solid grey; }
+  </style>
   <link  href="/cropper.min.css" rel="stylesheet"/>
   <script src="/cropper.min.js"></script>
   <script>
@@ -68,6 +71,13 @@
     </div>
     <div id="error"></div>
   </form>
+  {% if show_bump_profile %}
+    <form action="/pages/bump-profile" method="post" class='grey-border'>
+      {{ csrf|safe }}
+      <p><input type="submit" value="{{ tr['bump_profile'] }}"/></p>
+      <p>{{ tr['available_once_per_week'] }}</p>
+    </form>
+  {% endif %}
   <form>
     <table class="wide">
       <tr>
@@ -84,23 +94,24 @@
       </tr>
     </table>
   </form>
-  <form id="form" action="/pages/edit-profile" method="post">
+  <form id="form" action="/pages/settings" method="post">
     <div class="input-container">
       {{ csrf|safe }}
       <div class="label">{{ tr['name'] }}</div>
       <input name="name" maxlength="80" value="{{ user.name }}"/>
     </div>
     <div class="input-container">
-      <div class="label">{{ tr['profession'] }}</div>
-      <input name="profession" maxlength="80" value="{{ user.profession }}"/>
+      <div class="label">{{ tr['city_optional'] }}</div>
+      <input name="city" maxlength="80" value="{{ user.city }}"/>
+    </div>
+    <p>{{ tr['consider_using_cv_network']|safe }}</p>
+    <div class="input-container">
+      <div class="label">{{ tr['cv'] }}</div>
+      <input name="cv" maxlength="80" value="{{ user.cv }}"/>
     </div>
     <div class="input-container">
-      <div class="label">{{ tr['phone_optional'] }}</div>
-      <input name="phone" maxlength="80" value="{{ user.phone }}"/>
-    </div>
-    <div class="input-container">
-      <div class="label">{{ tr['profile_summary'] }}</div>
-      <textarea name="summary" class="wide" maxlength="1000">{{ user.summary }}</textarea>
+      <div class="label">{{ tr['about'] }}</div>
+      <textarea name="about" class="wide" maxlength="1000">{{ user.about }}</textarea>
     </div>
     <div class="input-container">
       <div class="label">{{ tr['email_address'] }}</div>
@@ -111,8 +122,16 @@
       {{ tr['show_email'] }}
     </div>
     <div class="input-container checkbox">
+      <input {% if user.show_profile %}checked{% endif %} type="checkbox" name="show_profile" value="true"/>
+      {{ tr['show_profile'] }}
+    </div>
+    <div class="input-container checkbox">
       <input {% if user.open %}checked{% endif %} type="checkbox" name="open" value="true"/>
-      {{ tr['open_to_work'] }}
+      {{ tr['open_to_connections'] }}
+    </div>
+    <div class="input-container checkbox">
+      <input {% if user.receive_emails %}checked{% endif %} type="checkbox" name="receive_emails" value="true"/>
+      {{ tr['receive_emails'] }}
     </div>
     <div class="input-container">
       <input type="submit" value="{{ tr['save_changes'] }}"/>

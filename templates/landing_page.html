@@ -14,14 +14,12 @@
 <div id="box">
   <h1 class="center">Co-Founder Network</h1>
   <p class="center">{{ tr['brief'] }}</p>
-  <h3 class="center">{{ tr['our_cvs'] }}</h3>
   <ul class="center">
     {% for profile in profiles %}
       {% if profile.name %}
         <li>
           <a href="/{% if profile.username %}{{ profile.username }}{% else %}{{ profile.id }}{% endif %}">{{ profile.name }}</a>
-          {% if profile.profession %}<br/>{{ profile.profession }}{% endif %}
-          {% if profile.open %}<br/>{{ tr['open_to_work_short'] }}{% endif %}
+          {% if profile.open %}<br/>{{ tr['open_to_connections'] }}{% endif %}
         </li>
       {% endif %}
     {% endfor %}

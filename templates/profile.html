@@ -20,7 +20,7 @@
               {% endif %}
             {% endif %}
             {% if user and profile.id == user.id %}
-              <a class="edit" href="/cv/edit-profile">{{ tr['edit_basic_info'] }}</a>
+              <a class="edit" href="/pages/settings">{{ tr['edit_profile'] }}</a>
             {% endif %}
           </h1>
         </td>
@@ -36,123 +36,37 @@
         {% endif %}
       {% endif %}
       {% if user and profile.id == user.id %}
-        <a class="edit" href="/cv/edit-profile">{{ tr['edit_basic_info'] }}</a>
+        <a class="edit" href="/pages/settings">{{ tr['edit_profile'] }}</a>
       {% endif %}
     </h1>
   {% endif %}
-  </h1>
 
-  {% if profile.phone %}
-    <p><strong>{{ tr['phone'] }}</strong>: {{ profile.phone }}</p>
+  {% if profile.open %}
+    {% if user %}
+      <form action="/{% if profile.username %}{{ profile.username }}{% else %}{{ profile.id }}{% endif %}/connect" method="post">
+        {{ csrf|safe }}
+    {% else %}
+      <form action="/pages/sign-up" method="get">
+    {% endif %}
+        <input type="submit" value="Connect"/>
+      </form>
   {% endif %}
 
   {% if profile.show_email %}
     <p><strong>{{ tr['email_address'] }}</strong>: <a href="mailto:{{ profile.email }}">{{ profile.email }}</a></p>
   {% endif %}
 
-  {% if profile.summary and not short %}
-    <h2>{{ tr['summary'] }}</h2>
-    <p>{{ profile.summary }}</p>
+  {% if profile.city %}
+    <p><strong>{{ tr['city'] }}</strong>: {{ profile.city }}</p>
   {% endif %}
 
-  {% if skills and not short %}
-    <h2>{{ tr['skills'] }}</h2>
-    <p class="skills">
-      {% for skill in skills %}
-        <span>{{ skill.name }}</span>
-      {% endfor %}
-    </p>
+  {% if profile.cv %}
+    <p><strong>{{ tr['cv'] }}</strong>: <a href="{{ profile.cv }}">{{ profile.cv }}</a></p>
   {% endif %}
 
-  {% if profile.experiences or (user and user.id == profile.id) %}
-    <h2>{{ tr['experience'] }} {% if user and user.id == profile.id %}<a class="edit" href="/cv/experience/new">{{ tr['new_experience'] }}</a>{% endif %}</h2>
-    <ul>
-      {% for experience in profile.experiences %}
-        <li>
-          <h3>
-            {% if experience.url %}
-              <a href="{{ experience.url }}">{{ experience.name }}</a>
-            {% else %}
-              {{ experience.name }}
-            {% endif %}
-            {{ experience|calculate_duration_in_months(tr) }}
-            {% if user and profile.id == user.id %}
-              <a class="edit" href="/cv/experience/{{ experience.id }}">{{ tr['edit_experience'] }}</a>
-            {% endif %}
-          </h3>
-          {% if experience.position %}
-            <p><strong>{{ experience.position }}</strong></p>
-          {% endif %}
-          {% if experience.skills and not short %}
-            <p class="skills">
-              {% for skill in experience.skills %}
-                <span>{{ skill.name }}</span>
-              {% endfor %}
-            </p>
-          {% endif %}
-          {% if experience.description and not short %}
-            <p>{{ experience.description }}</p>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  {% if profile.educations or (user and user.id == profile.id) %}
-    <h2>{{ tr['education'] }} {% if user and user.id == profile.id %}<a class="edit" href="/cv/education/new">{{ tr['new_education'] }}</a>{% endif %}</h2>
-    <ul>
-      {% for education in profile.educations %}
-        <li>
-          <h3>
-            {% if education.url %}
-              <a href="{{ education.url }}">{{ education.institution }}</a>
-            {% else %}
-              {{ education.institution }}
-            {% endif %}
-            {{ education|calculate_duration_in_months(tr) }}
-            {% if user and user.id == profile.id %}
-              <a class="edit" href="/cv/education/{{ education.id }}">{{ tr['edit_education'] }}</a>
-            {% endif %}
-          </h3>
-          <p>{{ education.qualification }}</p>
-          {% if education.gpa %}
-            <p><strong>GPA</strong>: {{ "%1.3f"%education.gpa }}
-          {% endif %}
-          {% if education.skills and not short %}
-            <p class="skills">
-              {% for skill in education.skills %}
-                <span>{{ skill.name }}</span>
-              {% endfor %}
-            </p>
-          {% endif %}
-          {% if education.classes and not short %}
-            <h4>{{ tr['classes'] }}</h4>
-            <p class="classes">
-              {% for class_ in education.classes %}
-                <span>{{ class_.name }}</span>
-              {% endfor %}
-            </p>
-          {% endif %}
-          {% if education.awards and not short %}
-            <h4>{{ tr['awards'] }}</h4>
-            <ul>
-              {% for award in education.awards %}
-                <li>{{ award.name }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-
-  {% if profile.social_media or (user and user.id == profile.id) %}
-    <h2>{{ tr['social_media'] }} {% if user and user.id == profile.id %}<a class="edit" href="/cv/social-media">{{ tr['edit_social_media'] }}{% endif %}</h2>
-    <ul>
-      {% for social_media in profile.social_media %}
-        <li><a href="{{ social_media.url }}">{{ social_media.name }}</a></li>
-      {% endfor %}
-    </ul>
+  {% if profile.about %}
+    <h2>{{ tr['about'] }}</h2>
+    {{ profile.about|render_markdown }}
   {% endif %}
 </div>
 {% endblock %}

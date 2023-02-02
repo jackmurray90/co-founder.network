@@ -67,9 +67,9 @@
     <span>{{ tr['logged_in_as'] }} {{ user.email }}</span>
     <a href="/">{{ tr['browse'] }}</a>
     {% if user.username %}
-      <a href="/{{ user.username }}">{{ tr['view_profile'] }}</a>
+      <a href="/{{ user.username }}">{{ tr['my_profile'] }}</a>
     {% else %}
-      <a href="/{{ user.id }}">{{ tr['view_profile'] }}</a>
+      <a href="/{{ user.id }}">{{ tr['my_profile'] }}</a>
     {% endif %}
     {% if user.admin %}
       <a href="/pages/referrers">{{ tr['referrers'] }}</a>

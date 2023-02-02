@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from config import DATABASE
 from db import User, LoginCode, Referrer, View, Job
 from time import time
+from mistune import create_markdown
 from mail import send_email
 from os.path import isfile
 from os import system, unlink
@@ -16,6 +17,7 @@ import re
 
 app = Flask(__name__)
 get, post = csrf(app, create_engine(DATABASE))
+markdown = create_markdown()
 
 def make_url(url):
   url = url.strip()
@@ -24,10 +26,14 @@ def make_url(url):
     return url
   return f'http://{url}'
 
+@app.template_filter()
+def render_markdown(m):
+  return markdown(m)
+
 @get('/')
 def landing_page(render_template, session, user, tr):
   log_referrer(session)
-  return render_template('landing_page.html')
+  return render_template('landing_page.html', profiles=session.query(User).order_by(User.bump_timestamp.desc()))
 
 @get('/pages/privacy-policy')
 def privacy(render_template, session, user, tr):
@@ -75,7 +81,7 @@ def sign_up(redirect, session, user, tr):
     if user.email_verified:
       return redirect('/pages/sign-up', tr['account_already_exists'])
   except:
-    user = User(email=request.form['email'].strip().lower(), api_key=random_128_bit_string())
+    user = User(email=request.form['email'].strip().lower(), api_key=random_128_bit_string(), email_notifications_key=random_128_bit_string(), bump_timestamp=int(time()))
     session.add(user)
     session.commit()
   login_code = LoginCode(user_id=user.id, code=random_128_bit_string(), expiry=int(time()+60*60*2))
@@ -147,9 +153,9 @@ def set_username(redirect, session, user, tr):
       raise Exception
     user.username = request.form['username'] or None
     session.commit()
-    return redirect('/pages/edit-profile', tr['successful_claim'] + request.form['username'])
+    return redirect('/pages/settings', tr['successful_claim'] + request.form['username'])
   except:
-    return redirect('/pages/edit-profile', request.form['username'] + tr['is_taken'])
+    return redirect('/pages/settings', request.form['username'] + tr['is_taken'])
 
 @post('/pages/set-profile-picture')
 def set_profile_picture(redirect, session, user, tr):
@@ -160,24 +166,26 @@ def set_profile_picture(redirect, session, user, tr):
   unlink(f'static/profile_pictures/{temp}')
   return {'result': 'success'}
 
-@get('/pages/edit-profile')
-def edit_profile(render_template, session, user, tr):
+@get('/pages/settings')
+def settings(render_template, session, user, tr):
   if not user: return redirect('/')
-  return render_template('edit_profile.html', profile_picture_exists=isfile(f'static/profile_pictures/{user.id}.png'))
+  return render_template('settings.html', profile_picture_exists=isfile(f'static/profile_pictures/{user.id}.png'))
 
-@post('/pages/edit-profile')
-def edit_profile(redirect, session, user, tr):
+@post('/pages/settings')
+def settings(redirect, session, user, tr):
   if not user: return redirect('/')
   if len(request.form['name']) > 80: abort(400)
-  # TODO fill this out
-  if len(request.form['phone']) > 80: abort(400)
-  if len(request.form['summary']) > 1000: abort(400)
+  if len(request.form['city']) > 80: abort(400)
+  if len(request.form['cv']) > 80: abort(400)
+  if len(request.form['about']) > 1000: abort(400)
   user.name = request.form['name']
-  user.profession = request.form['profession']
-  user.phone = request.form['phone']
-  user.summary = request.form['summary']
+  user.city = request.form['city']
+  user.cv = request.form['cv']
+  user.about = request.form['about']
   user.show_email = 'show_email' in request.form
+  user.show_profile = 'show_profile' in request.form
   user.open = 'open' in request.form
+  user.receive_emails = 'receive_emails' in request.form
   session.commit()
   if user.username:
     return redirect(f'/{user.username}')
@@ -202,7 +210,7 @@ def view(render_template, session, user, tr, id):
     [profile] = session.query(User).where(User.id == id)
   except:
     abort(404)
-  return view_profile(render_template, session, profile)
+  return view_profile(render_template, session, user, profile)
 
 @get('/<username>')
 def view(render_template, session, user, tr, username):
@@ -211,9 +219,11 @@ def view(render_template, session, user, tr, username):
     [profile] = session.query(User).where(User.username == username)
   except:
     abort(404)
-  return view_profile(render_template, session, profile)
+  return view_profile(render_template, session, user, profile)
 
-def view_profile(render_template, session, profile):
+def view_profile(render_template, session, user, profile):
+  if not profile.show_profile and (not user or user.id != profile.id):
+    abort(404)
   view = session.query(View).filter((View.user_id == profile.id) & (View.remote_address == request.remote_addr)).first()
   if view is None:
     view = View(user_id=profile.id, remote_address=request.remote_addr, timestamp=0)

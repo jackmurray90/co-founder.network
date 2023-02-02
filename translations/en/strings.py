@@ -39,7 +39,7 @@ strings = {
   'must_agree': 'You must agree to our Terms and Conditions and Privacy Policy before signing up.',
   'name': 'Name',
   'no_get_me_out': "No, I want to keep my account.",
-  'open_to_connections', 'Open to connection requests',
+  'open_to_connections': 'Open to connection requests',
   'picture_too_large': 'Image too large. Max size 2MB.',
   'please_click': "Please click ",
   'privacy': read('privacy.html'),

@@ -188,6 +188,8 @@ def settings(render_template, session, user, tr):
   if not user: return redirect('/')
   if isfile(f'static/profile_pictures/{user.id}.png'):
     user.profile_picture_exists = True
+  if user.bump_timestamp < int(time()) - 60*60*24*7:
+    user.made_first_bump = False
   return render_template('settings.html')
 
 @post('/pages/settings')
@@ -210,6 +212,16 @@ def settings(redirect, session, user, tr):
   if user.username:
     return redirect(f'/{user.username}')
   return redirect(f'/{user.id}')
+
+@post('/pages/bump-profile')
+def settings(redirect, session, user, tr):
+  if not user: return redirect('/')
+  if user.made_first_bump and user.bump_timestamp >= int(time()) - 60*60*24*7:
+    abort(403)
+  user.bump_timestamp = int(time())
+  user.made_first_bump = True
+  session.commit()
+  return redirect('/pages/settings', tr['your_profile_bumped'])
 
 @post('/pages/connection-request/<id>')
 def connection_request(redirect, session, user, tr, id):

@@ -62,6 +62,14 @@
   {% if message %}
     <p>{{ message }}</p>
   {% endif %}
+  {% if not user.made_first_bump %}
+    <form action="/pages/bump-profile" method="post">
+      <div class="input-container">
+        {{ csrf|safe }}
+        <input id="submit" type="submit" value="{{ tr['bump_profile'] }}"/> {{ tr['allowed_once_per_week'] }}
+      </div>
+    </form>
+  {% endif %}
   <form action="/pages/set-username" method="post">
     <div class="input-container">
       {{ csrf|safe }}

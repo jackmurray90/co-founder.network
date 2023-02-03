@@ -240,6 +240,7 @@ def delete(redirect, session, user, tr):
   if not user: return redirect('/')
   while True:
     try:
+      [user] = session.query(User).where(User.id == user.id)
       for view in user.views:
         session.delete(view)
       for login_code in user.login_codes:
@@ -252,7 +253,8 @@ def delete(redirect, session, user, tr):
         session.delete(connection)
       session.delete(user)
       session.commit()
-    except:
+      break
+    except Exception as e:
       sleep(1)
   return redirect('/')
 

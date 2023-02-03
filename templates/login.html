@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
 <form class="center" action="{% if sign_up %}/pages/sign-up{% else %}/pages/login{% endif %}" method="post">
+  {% if sign_up %}
+    <h1>{{ tr['sign_up'] }}</h1>
+  {% else %}
+    <h1>{{ tr['login'] }}</h1>
+  {% endif %}
   {% if message %}
     <p>{{ message }}</p>
   {% endif %}

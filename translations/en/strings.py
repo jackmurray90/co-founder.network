@@ -26,7 +26,7 @@ strings = {
   'email_address': "E-mail Address",
   'email_not_found': "No account with that e-mail address was found.",
   'here': 'here',
-  'if_not_signup': 'If you did not sign up to Co-FoundeV Network, please ignore this e-mail.',
+  'if_not_signup': 'If you did not sign up to Co-Founder Network, please ignore this e-mail.',
   'invalid_username': 'Invalid username. Must contain only lowercase a-z, 0-9, and dash (-) and contain at least one letter.',
   'invalid_email': 'Invalid e-mail address.',
   'message': 'Message',

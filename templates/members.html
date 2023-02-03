@@ -6,6 +6,9 @@
 {% endblock %}
 {% block content %}
 <div id="content">
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
   <h1 class="center">{{ tr['members'] }}</h1>
   {% for profile in profiles %}
     <div>{{ card(profile) }}</div>

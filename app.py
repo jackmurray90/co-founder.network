@@ -256,7 +256,7 @@ def delete(redirect, session, user, tr):
       break
     except Exception as e:
       sleep(1)
-  return redirect('/')
+  return redirect('/', tr['your_account_was_deleted'])
 
 @get('/<int:id>')
 def view(render_template, session, user, tr, id):

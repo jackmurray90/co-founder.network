@@ -3,6 +3,11 @@ from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
+class Connection(Base):
+  __tablename__ = 'connections'
+  a = Column(Integer, ForeignKey('users.id'), primary_key=True)
+  b = Column(Integer, ForeignKey('users.id'), primary_key=True)
+
 class User(Base):
   __tablename__ = 'users'
   id = Column(Integer, primary_key=True)
@@ -14,7 +19,7 @@ class User(Base):
   show_email = Column(Boolean, default=False)
   show_profile = Column(Boolean, default=True)
   open = Column(Boolean, default=True)
-  receive_emails = Column(Boolean, default=True)
+  receive_connection_emails = Column(Boolean, default=True)
   bump_timestamp = Column(Integer)
   made_first_bump = Column(Boolean, default=False)
   api_key = Column(String)
@@ -22,8 +27,15 @@ class User(Base):
   email = Column(String)
   email_verified = Column(Boolean, default=False)
   admin = Column(Boolean, default=False)
+  connections = relationship('User', secondary='connections', primaryjoin=(id == Connection.a), secondaryjoin=(Connection.b == id), viewonly=True)
+  incoming_connections = relationship('User', secondary='connections', primaryjoin=(id == Connection.b), secondaryjoin=(Connection.a == id), viewonly=True)
   views = relationship('View')
   jobs = relationship('Job')
+  login_codes = relationship('LoginCode')
+  # These three columns for in-memory variables only
+  profile_picture_exists = Column(Boolean)
+  connection_request_sent = Column(Boolean)
+  connected = Column(Boolean)
 
 class Job(Base):
   __tablename__ = 'jobs'
@@ -45,7 +57,6 @@ class LoginCode(Base):
   code = Column(String, primary_key=True)
   user_id = Column(Integer, ForeignKey('users.id'))
   expiry = Column(Integer)
-  user = relationship('User')
 
 class Referrer(Base):
   __tablename__ = 'referrers'

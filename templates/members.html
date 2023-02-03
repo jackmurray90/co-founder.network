@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block head %}
+  <style>
+    #box { max-width: 30em; border: 1px solid #ccc; margin: 5em auto; padding: 1em; }
+    h1 { margin-top: 0; }
+    .landing-page-header { border-bottom: 1px solid grey; }
+    #content > div { margin: 1em 0 0 0; padding: 0; border-bottom: 1px solid grey; }
+  </style>
+{% endblock %}
+{% block content %}
+<div id="content">
+  <h1 class="center landing-page-header">{{ tr['members'] }}</h1>
+  {% for profile in profiles %}
+    <div>{{ card(profile) }}</div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -5,8 +5,8 @@ from sqlalchemy import create_engine
 from decimal import Decimal
 from datetime import date, timedelta
 from config import DATABASE
-from db import User, LoginCode, Referrer, View, Job
-from time import time
+from db import User, LoginCode, Referrer, View, Job, Connection
+from time import time, sleep
 from mistune import create_markdown
 from mail import send_email
 from os.path import isfile
@@ -26,6 +26,18 @@ def make_url(url):
     return url
   return f'http://{url}'
 
+def valid_email(email):
+  return re.match("(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])", email)
+
+def init_profile_for_render(session, user, profile):
+  if isfile(f'static/profile_pictures/{profile.id}.png'):
+    profile.profile_picture_exists = True
+  if user and session.query(Connection).where((Connection.a == user.id) & (Connection.b == profile.id)).first():
+    if session.query(Connection).where((Connection.a == profile.id) & (Connection.b == user.id)).first():
+      profile.connected = True
+    else:
+      profile.connection_request_sent = True
+
 @app.template_filter()
 def render_markdown(m):
   return markdown(m)
@@ -33,7 +45,10 @@ def render_markdown(m):
 @get('/')
 def landing_page(render_template, session, user, tr):
   log_referrer(session)
-  return render_template('landing_page.html', profiles=session.query(User).order_by(User.bump_timestamp.desc()))
+  profiles = session.query(User).order_by(User.bump_timestamp.desc()).limit(100)
+  for profile in profiles:
+    init_profile_for_render(session, user, profile)
+  return render_template('members.html', profiles=profiles)
 
 @get('/pages/privacy-policy')
 def privacy(render_template, session, user, tr):
@@ -76,6 +91,7 @@ def sign_up(render_template, session, user, tr):
 def sign_up(redirect, session, user, tr):
   if user: return redirect('/')
   if not 'terms' in request.form: return redirect('/pages/sign-up', tr['must_agree'])
+  if not valid_email(request.form['email'].strip().lower()): return redirect('/pages/sign-up', tr['invalid_email'])
   try:
     [user] = session.query(User).where(User.email == request.form['email'].strip().lower())
     if user.email_verified:
@@ -88,7 +104,7 @@ def sign_up(redirect, session, user, tr):
   session.add(login_code)
   session.commit()
   template = 'emails/verification.html' if not 'cordova' in request.cookies else 'emails/cordova_verification.html'
-  send_email(user.email, tr['verification_email_subject'], render_template(template, tr=tr, code=login_code.code))
+  send_email("no-reply@co-founder.network", user.email, tr['verification_email_subject'], render_template(template, tr=tr, code=login_code.code))
   return redirect('/pages/sign-up', tr['verify_your_email'] % user.email)
 
 @get('/pages/login/<code>')
@@ -118,6 +134,7 @@ def login(render_template, session, user, tr):
 @post('/pages/login')
 def login(redirect, session, user, tr):
   if user: return redirect('/')
+  if not valid_email(request.form['email'].strip().lower()): return redirect('/pages/login', tr['invalid_email'])
   try:
     [user] = session.query(User).where(User.email == request.form['email'].strip().lower())
   except:
@@ -127,11 +144,11 @@ def login(redirect, session, user, tr):
   session.commit()
   if user.email_verified:
     template = 'emails/login.html' if not 'cordova' in request.cookies else 'emails/cordova_login.html'
-    send_email(user.email, tr['login_email_subject'], render_template(template, tr=tr, code=login_code.code))
+    send_email("no-reply@co-founder.network", user.email, tr['login_email_subject'], render_template(template, tr=tr, code=login_code.code))
     return redirect('/pages/login', tr['login_email_sent'])
   else:
     template = 'emails/verification.html' if not 'cordova' in request.cookies else 'emails/cordova_verification.html'
-    send_email(user.email, tr['verification_email_subject'], render_template(template, tr=tr, code=login_code.code))
+    send_email("no-reply@co-founder.network", user.email, tr['verification_email_subject'], render_template(template, tr=tr, code=login_code.code))
     return redirect('/pages/sign-up', tr['verify_your_email'] % request.form['email'])
 
 @post('/pages/logout')
@@ -169,12 +186,15 @@ def set_profile_picture(redirect, session, user, tr):
 @get('/pages/settings')
 def settings(render_template, session, user, tr):
   if not user: return redirect('/')
-  return render_template('settings.html', profile_picture_exists=isfile(f'static/profile_pictures/{user.id}.png'))
+  if isfile(f'static/profile_pictures/{user.id}.png'):
+    user.profile_picture_exists = True
+  return render_template('settings.html')
 
 @post('/pages/settings')
 def settings(redirect, session, user, tr):
   if not user: return redirect('/')
   if len(request.form['name']) > 80: abort(400)
+  if '\n' in request.form['name']: abort(400)
   if len(request.form['city']) > 80: abort(400)
   if len(request.form['cv']) > 80: abort(400)
   if len(request.form['about']) > 1000: abort(400)
@@ -185,11 +205,30 @@ def settings(redirect, session, user, tr):
   user.show_email = 'show_email' in request.form
   user.show_profile = 'show_profile' in request.form
   user.open = 'open' in request.form
-  user.receive_emails = 'receive_emails' in request.form
+  user.receive_connection_emails = 'receive_connection_emails' in request.form
   session.commit()
   if user.username:
     return redirect(f'/{user.username}')
   return redirect(f'/{user.id}')
+
+@post('/pages/connection-request/<id>')
+def connection_request(redirect, session, user, tr, id):
+  if not user: abort(403)
+  if len(request.form['message']) > 1000: abort(400)
+  try:
+    [profile] = session.query(User).where(User.id == id)
+  except:
+    abort(404)
+  try:
+    [connection] = session.query(Connection).where((Connection.a == user.id) & (Connection.b == profile.id))
+    abort(400)
+  except:
+    pass
+  session.add(Connection(a=user.id, b=profile.id))
+  session.commit()
+  if profile.receive_connection_emails:
+    send_email("connections@co-founder.network", profile.email, tr['connection_email_subject']%user.name, render_template('emails/connection.html', tr=tr, user=user, message=request.form['message']), ','.join(['connections@co-founder.network', user.email]))
+  return {'success': True}
 
 @get('/pages/delete')
 def delete(render_template, session, user, tr):
@@ -199,8 +238,22 @@ def delete(render_template, session, user, tr):
 @post('/pages/delete')
 def delete(redirect, session, user, tr):
   if not user: return redirect('/')
-  session.delete(user)
-  session.commit()
+  while True:
+    try:
+      for view in user.views:
+        session.delete(view)
+      for login_code in user.login_codes:
+        session.delete(login_code)
+      for job in user.jobs:
+        session.delete(job)
+      for connection in user.connections:
+        session.delete(connection)
+      for connection in user.incoming_connections:
+        session.delete(connection)
+      session.delete(user)
+      session.commit()
+    except:
+      sleep(1)
   return redirect('/')
 
 @get('/<int:id>')
@@ -230,7 +283,8 @@ def view_profile(render_template, session, user, profile):
   if view.timestamp + 60*60*24 < time():
     session.add(View(user_id=profile.id, remote_address=request.remote_addr, timestamp=int(time())))
     session.commit()
-  return render_template('profile.html', profile=profile, profile_picture_exists=isfile(f'static/profile_pictures/{profile.id}.png'))
+  init_profile_for_render(session, user, profile)
+  return render_template('profile.html', profile=profile)
 
 def log_referrer(session):
   try:

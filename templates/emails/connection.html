@@ -1,0 +1,8 @@
+<html>
+  <body>
+    <h2>{{ tr['connection_email_header']%user.name }}</h2>
+    {{ tr['connection_email_content']|safe }}
+    <p>{{ message|render_markdown|safe }}</p>
+    <p><small>{{ tr['connection_email_unsubscribe']|safe }}</small></p>
+  </body>
+</html>

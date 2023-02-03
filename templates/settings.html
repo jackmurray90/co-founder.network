@@ -83,7 +83,7 @@
       <tr>
         <td id="second-column" class="center">
           <div>{{ tr['profile_picture'] }}<br/>&nbsp;</div>
-          <img id='profile-picture' src="/profile_pictures/{% if profile_picture_exists %}{{ user.id }}{% else %}grey{% endif %}.png"/><br/>
+          <img id='profile-picture' src="/profile_pictures/{% if user.profile_picture_exists %}{{ user.id }}{% else %}grey{% endif %}.png"/><br/>
           <input type="file" name="image" id="image" onChange="readURL(this);"/>
         </td>
         <td id='third-column' class="hide">
@@ -106,11 +106,11 @@
     </div>
     <p>{{ tr['consider_using_cv_network']|safe }}</p>
     <div class="input-container">
-      <div class="label">{{ tr['cv'] }}</div>
+      <div class="label">{{ tr['cv_optional'] }}</div>
       <input name="cv" maxlength="80" value="{{ user.cv }}"/>
     </div>
     <div class="input-container">
-      <div class="label">{{ tr['about'] }}</div>
+      <div class="label">{{ tr['about_optional'] }}</div>
       <textarea name="about" class="wide" maxlength="1000">{{ user.about }}</textarea>
     </div>
     <div class="input-container">
@@ -130,8 +130,8 @@
       {{ tr['open_to_connections'] }}
     </div>
     <div class="input-container checkbox">
-      <input {% if user.receive_emails %}checked{% endif %} type="checkbox" name="receive_emails" value="true"/>
-      {{ tr['receive_emails'] }}
+      <input {% if user.receive_connection_emails %}checked{% endif %} type="checkbox" name="receive_connection_emails" value="true"/>
+      {{ tr['receive_connection_emails'] }}
     </div>
     <div class="input-container">
       <input type="submit" value="{{ tr['save_changes'] }}"/>

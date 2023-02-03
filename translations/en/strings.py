@@ -14,7 +14,7 @@ strings = {
   'city': 'City',
   'city_optional': 'City (optional)',
   'claim_username': 'Claim username',
-  'consider_using_cv_network': 'Consider using our sister site <a href="https://cv.network">CV Network</a> to host your CV',
+  'consider_using_cv_network': 'Consider using our sister site <a href="https://cv.network">CV Network</a> to host your CV.',
   'cordova_to_login': ' using the device Co-Founder Network is installed on to log in to Co-Founder Network',
   'cordova_to_verify': ' using the device Co-Founder Network is installed on to verify your e-mail address.',
   'members': 'Members',

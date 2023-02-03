@@ -57,10 +57,10 @@ strings = {
   'privacy': read('privacy.html'),
   'privacy_policy': 'Privacy Policy',
   'profile_picture': 'Profile picture',
-  'receive_introduction_emails': 'Receive introduction emails for new connections',
+  'receive_connection_emails': 'Receive connection request emails',
   'referrers': "Referrers",
   'save_changes': 'Save changes',
-  'show_email': 'Show e-mail address on profile page',
+  'show_email': 'Show e-mail address on profile',
   'show_profile': 'Profile page is visible to public',
   'sign_up': "Sign up",
   'successful_claim': 'Successfully claimed username ',
@@ -73,7 +73,7 @@ strings = {
   'verification_email_header': 'Welcome to Co-Founder Network',
   'verification_email_subject': 'Verify your e-mail.',
   'verify_your_email': 'Please verify your e-mail by clicking the link we sent to %s.',
-  'my_profile': 'My profile',
+  'settings': 'Settings',
   'yes_delete': "Yes, delete my account",
   'your_name_here': "<Your Name Here>"
 }

@@ -108,11 +108,7 @@
   <span id="nav-header"><img src="/logo.png" width="60px"/> Co-Founder Network</span>
   {% if user %}
     <a href="/">{{ tr['members'] }}</a>
-    {% if user.username %}
-      <a href="/{{ user.username }}">{{ tr['my_profile'] }}</a>
-    {% else %}
-      <a href="/{{ user.id }}">{{ tr['my_profile'] }}</a>
-    {% endif %}
+    <a href="/pages/settings">{{ tr['settings'] }}</a>
     {% if user.admin %}
       <a href="/pages/referrers">{{ tr['referrers'] }}</a>
     {% endif %}

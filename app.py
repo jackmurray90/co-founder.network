@@ -232,7 +232,7 @@ def settings(redirect, session, user, tr):
 
 @get('/pages/jobs')
 def jobs(render_template, session, user, tr):
-  log_referrer()
+  log_referrer(session)
   jobs = session.query(Job).order_by(Job.id.desc())
   for job in jobs:
     init_job_for_render(session, user, job)
@@ -240,7 +240,7 @@ def jobs(render_template, session, user, tr):
 
 @get('/pages/jobs/<id>')
 def job(render_template, session, user, tr, id):
-  log_referrer()
+  log_referrer(session)
   job = session.query(Job).where(Job.id == id).first()
   if not job: abort(404)
   if not job.active and (not user or user.id != job.user_id): abort(404)

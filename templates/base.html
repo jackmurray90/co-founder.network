@@ -27,7 +27,8 @@
   #nav a, #nav span { display: inline-block; padding: 1em 1em; white-space: nowrap; }
   #nav a, #nav a:hover, #nav a:visited, #nav a:active { color: #9cf; }
   #nav span { padding: 0 2em; color: #fff; }
-  #nav #nav-header { font-family: serif; font-size: 1.5em; font-variant: small-caps; letter-spacing: 0.2em; }
+  #nav #nav-header { display: inline-block; vertical-align: middle; margin: 0; padding: 0; color: #fff; font-family: serif; font-size: 1.5em; font-variant: small-caps; letter-spacing: 0.2em; }
+  #nav #nav-header td { padding: 0 0.2em; margin: 0; border: none; }
   #nav #nav-header img { vertical-align: middle; margin: 0.5em 0; }
   #nav form { margin: 0; display: inline; }
   #nav input { font-family: serif; white-space: nowrap; font-size: 16px; background-color: transparent; border: none; color: #9cf; padding: 1em 1em; cursor: pointer; }
@@ -106,7 +107,7 @@
 
 <title>{% block title %}Co-Founder Network{% endblock %}</title>
 <div id="nav">
-  <span id="nav-header"><img src="/logo.png" width="60px"/> Co-Founder Network</span>
+  <table id="nav-header"><tr><td><img src="/logo.png" width="60px"/></td><td>Co-Founder<br/>Network</td></tr></table>
   {% if user %}
     <a href="/">{{ tr['members'] }}</a>
     <a href="/pages/settings">{{ tr['settings'] }}</a>

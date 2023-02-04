@@ -12,7 +12,6 @@ strings = {
   'bump_profile': 'Move profile to top of member list',
   'your_profile_bumped': 'Your profile was moved to the top of the members list.',
   'allowed_once_per_week': '(Allowed once per week)',
-  'available_once_per_week': 'Available once per week',
   'city': 'City',
   'city_optional': 'City (optional)',
   'claim_username': 'Claim username',

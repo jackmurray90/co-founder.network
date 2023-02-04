@@ -7,6 +7,7 @@ class Connection(Base):
   __tablename__ = 'connections'
   a = Column(Integer, ForeignKey('users.id'), primary_key=True)
   b = Column(Integer, ForeignKey('users.id'), primary_key=True)
+  code = Column(String, index=True)
 
 class User(Base):
   __tablename__ = 'users'

@@ -24,12 +24,6 @@ class Handler:
     except:
       return
     with Session(engine) as session:
-      def get_user(address):
-        match = re.match('.*<(.*)>', address)
-        if match:
-          address = match.group(1)
-        address = address.strip()
-        return session.query(User).where(User.email == address).first()
       for recipient in envelope.rcpt_tos:
         if 'jack@co-founder.network' in recipient:
           try:
@@ -45,17 +39,15 @@ class Handler:
           except:
             message.add_header('To', 'jack@murray.software')
           send_raw_email('no-reply@co-founder.network', 'jack@murray.software', message)
-        if 'connections@co-founder.network' in recipient:
-          sender = get_user(message['From'] or '')
-          if sender:
-            for recipient in (message['To'] or '').split(','):
-              recipient = get_user(recipient)
-              if recipient:
-                try:
-                  session.add(Connection(a=sender.id, b=recipient.id))
-                  session.commit()
-                except:
-                  pass
+        match = re.search('connections\+([a-zA-Z0-9]+)@co-founder.network', message['To'] or '')
+        if match:
+          connection = session.query(Connection).where(Connection.code == match.group(1)).first()
+          if connection:
+            try:
+              session.add(Connection(a=connection.b, b=connection.a))
+              session.commit()
+            except:
+              pass
     return '250 Message accepted for delivery'
 
 if __name__ == '__main__':
@@ -64,8 +56,8 @@ if __name__ == '__main__':
     '/etc/letsencrypt/live/co-founder.network/fullchain.pem',
     '/etc/letsencrypt/live/co-founder.network/privkey.pem'
   )
-  controller = Controller(Handler(), hostname='0.0.0.0', port=25, tls_context=context)
-  ssl_controller = Controller(Handler(), hostname='0.0.0.0', port=465, ssl_context=context)
+  controller = Controller(Handler(), hostname='0.0.0.0', port=25, tls_context=context, server_hostname='co-founder.network')
+  ssl_controller = Controller(Handler(), hostname='0.0.0.0', port=465, ssl_context=context, server_hostname='co-founder.network')
   controller.start()
   ssl_controller.start()
   get_event_loop().run_forever()

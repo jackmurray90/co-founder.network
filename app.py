@@ -236,10 +236,11 @@ def connection_request(redirect, session, user, tr, id):
     abort(400)
   except:
     pass
-  session.add(Connection(a=user.id, b=profile.id))
+  session.add(Connection(a=user.id, b=profile.id, code=random_128_bit_string()))
   session.commit()
   if profile.receive_connection_emails:
-    send_email("connections@co-founder.network", profile.email, tr['connection_email_subject']%user.name, render_template('emails/connection.html', tr=tr, user=user, message=request.form['message']), ','.join(['connections@co-founder.network', user.email]))
+    sender = f"connections+{code}@co-founder.network"
+    send_email(sender, profile.email, tr['connection_email_subject']%user.name, render_template('emails/connection.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
   return {'success': True}
 
 @get('/pages/delete')

@@ -9,9 +9,9 @@
   {% if message %}
     <p class="center">{{ message }}</p>
   {% endif %}
-  <h1 class="center">{{ tr['members'] }}</h1>
-  {% for profile in profiles %}
-    <div>{{ profile_card(profile) }}</div>
+  <h1 class="center">{{ tr['jobs'] }}</h1>
+  {% for job in jobs %}
+    <div>{{ job_card(job) }}</div>
   {% endfor %}
 </div>
 {% endblock %}

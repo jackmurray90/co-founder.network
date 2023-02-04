@@ -21,6 +21,7 @@ class User(Base):
   show_profile = Column(Boolean, default=True)
   open = Column(Boolean, default=True)
   receive_connection_emails = Column(Boolean, default=True)
+  receive_application_emails = Column(Boolean, default=True)
   bump_timestamp = Column(Integer)
   made_first_bump = Column(Boolean, default=False)
   api_key = Column(String)
@@ -33,6 +34,7 @@ class User(Base):
   views = relationship('View')
   jobs = relationship('Job')
   login_codes = relationship('LoginCode')
+  applications = relationship('Application')
   # These three columns for in-memory variables only
   profile_picture_exists = Column(Boolean)
   connection_request_sent = Column(Boolean)
@@ -48,10 +50,24 @@ class Job(Base):
   position = Column(String, default='')
   share = Column(Numeric(6, 3))
   vesting_frequency = Column(Integer)
-  vesting_peroid = Column(Integer)
+  vesting_period = Column(Integer)
   description = Column(Text, default='')
   expiration = Column(Date)
   paid = Column(Boolean, default=False)
+  active = Column(Boolean, default=True)
+  user = relationship('User', back_populates='jobs')
+  views = relationship('View')
+  applications = relationship('Application')
+  # These two columns for in-memory variables only
+  logo_exists = Column(Boolean)
+  applied  = Column(Boolean)
+
+class Application(Base):
+  __tablename__ = 'applications'
+  user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+  job_id = Column(Integer, ForeignKey('jobs.id'), primary_key=True)
+  code = Column(String, index=True)
+  responded = Column(Boolean, default=False)
 
 class LoginCode(Base):
   __tablename__ = 'login_codes'

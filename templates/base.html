@@ -75,6 +75,15 @@
     form.parentNode.remove();
     return false;
   }
+  function apply(form, id) {
+    const data = new URLSearchParams(new FormData(form));
+    fetch(`/pages/job-application/${id}`, { method: 'post', body: data });
+    const button = document.getElementById(`apply-button-${id}`);
+    button.disabled = true;
+    button.value = "{{ tr['applied'] }}";
+    form.parentNode.remove();
+    return false;
+  }
   function close_modal(button) {
     button.parentNode.parentNode.parentNode.remove();
     return false;
@@ -101,6 +110,28 @@
     document.body.appendChild(modal);
     return false;
   }
+  function apply_modal(id) {
+    const name = document.getElementById(`company-name-${id}`).innerHTML;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <form onSubmit="return apply(this, ${id});">
+        <h3 class="center">{{ tr['apply_for_job'] }}</h3>
+        <p>{{ tr['share_email_warning'] }} ${name}.</p>
+        {{ csrf|safe }}
+        <div class="input-container">
+          <div class="label">{{ tr['message'] }}</div>
+          <textarea placeholder="{{ tr['job_message_placeholder'] }}" name="message" maxlength="1000"></textarea>
+        </div>
+        <div class="input-container center">
+          <input type="submit" value="{{ tr['send_job_application'] }}"/>
+          <input type="button" value="{{ tr['close'] }}" onClick="return close_modal(this);"/>
+        </div>
+      </form>
+    `;
+    document.body.appendChild(modal);
+    return false;
+  }
 </script>
 
 {% block head %}{% endblock %}
@@ -110,6 +141,7 @@
   <table id="nav-header"><tr><td><img src="/logo.png" width="60px"/></td><td>Co-Founder<br/>Network</td></tr></table>
   {% if user %}
     <a href="/">{{ tr['members'] }}</a>
+    <a href="/pages/jobs">{{ tr['jobs'] }}</a>
     <a href="/pages/settings">{{ tr['settings'] }}</a>
     {% if user.admin %}
       <a href="/pages/referrers">{{ tr['referrers'] }}</a>
@@ -125,7 +157,7 @@
   {% endif %}
 </div>
 
-{% macro card(profile) %}
+{% macro profile_card(profile) %}
   <table class='profile-table'>
     <tr>
       {% if profile.profile_picture_exists %}
@@ -189,6 +221,78 @@
 
   {% if profile.about %}
     {{ profile.about|render_markdown|safe }}
+  {% endif %}
+{% endmacro %}
+
+{% macro job_card(job) %}
+  <table class='profile-table'>
+    <tr>
+      {% if job.logo_exists %}
+        <td><img id="profile-picture" src="/job_logos/{{ job.id }}.png"/></td>
+      {% endif %}
+      <td class="wide">
+        <h1>
+          {% if job.name %}
+            {% if job.url %}
+              <a href="{{ job.url }}" id="company-name-{{ job.id }}">{{ job.name }}</a>
+            {% else %}
+              <span id="company-name-{{ job.id }}">{{ job.name }}</span>
+            {% endif %}
+          {% else %}
+            {% if user and user.id == job.user_id %}
+              {{ tr['company_name_here'] }}
+            {% endif %}
+          {% endif %}
+          {% if user and job.user_id == user.id %}
+            <a class="edit" href="/pages/edit-job/{{ job.id }}">{{ tr['edit_job'] }}</a>
+          {% endif %}
+        </h1>
+      </td>
+      <td>
+        {% if job.applied %}
+          <form class="connect-form">
+            <input disabled type="button" value="{{ tr['applied'] }}"/>
+          </form>
+        {% else %}
+          {% if user %}
+            {% if user.id != job.id %}
+              <form class="connect-form" onSubmit="return apply_modal({{ job.id }});">
+                <input type="submit" id="apply-button-{{ job.id }}" value="{{ tr['apply'] }}"/>
+              </form>
+            {% else %}
+              &nbsp;
+            {% endif %}
+          {% else %}
+            <form class="connect-form" onSubmit="window.location.assign('https://co-founder.network/pages/sign-up'); return false;">
+              <input type="submit" value="{{ tr['apply'] }}"/>
+            </form>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  {% if job.location %}
+    <p><strong>{{ tr['location'] }}</strong>: {{ job.city }}</p>
+  {% endif %}
+
+  {% if job.position %}
+    <p><strong>{{ tr['position'] }}</strong>: {{ job.position }}</p>
+  {% endif %}
+
+  {% if job.share %}
+    <p><strong>{{ tr['share'] }}</strong>: {{ '%3.3f'%job.share }}%</p>
+  {% endif %}
+
+  {% if job.vesting_period is not none %}
+    <p><strong>{{ tr['vesting_period'] }}</strong>: {{ job.vesting_period }} {{ tr['months'] }}</p>
+    {% if job.vesting_frequency is not none %}
+      <p><strong>{{ tr['vesting_frequency'] }}</strong>: {{ job.vesting_frequency }} {{ tr['months'] }}</p>
+    {% endif %}
+  {% endif %}
+
+  {% if job.description %}
+    {{ job.description|render_markdown|safe }}
   {% endif %}
 {% endmacro %}
 

@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<form class="center" action="/pages/delete-job/{{ job.id }}" method="post">
+  {{ csrf|safe }}
+  <p>{{ tr['are_you_sure_delete_job'] }}</p>
+  <p><input type="submit" value="{{ tr['yes_delete_job'] }}"/> <a href="/pages/my-jobs">{{ tr['no_get_me_out_job'] }}</a></p>
+</form>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block head %}
+  <link rel="stylesheet" href="/remixicon.css"/>
+  <style>
+    .grey-border { border: 1px solid grey; }
+    #image { display: none; }
+    #second-column > p { margin-top: 0; }
+    .custom-file-upload { vertical-align: middle; display: inline-block; cursor: pointer; }
+  </style>
+  <link  href="/cropper.min.css" rel="stylesheet"/>
+  <script src="/cropper.min.js"></script>
+  <script>
+    let cropper = null;
+    function readURL(input) {
+      if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          document.getElementById('working-logo').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+        setTimeout(function() {
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(document.getElementById('working-logo'), { aspectRatio: 1 / 1 });
+          document.getElementById('second-column').className = 'hide';
+          document.getElementById('third-column').className = '';
+          document.getElementById('cropper').className = '';
+          document.getElementById('crop-button').className = '';
+        }, 1000);
+      }
+    }
+    function crop() {
+      cropper.getCroppedCanvas().toBlob(async function (blob) {
+        document.getElementById('third-column').className = 'hide';
+        document.getElementById('second-column').className = 'center';
+        document.getElementById('cropper').className = 'hide';
+        document.getElementById('crop-button').className = 'hide';
+        if (blob.size > 1024*1024*2) {
+          alert('{{ tr["picture_too_large"] }}');
+          return;
+        }
+        const formData = new FormData();
+        formData.append('image', blob);
+        formData.append('api_key', '{{ user.api_key }}');
+        await fetch('/pages/set-logo/${job.id}`, {
+          method: 'POST',
+          body: formData
+        });
+        document.getElementById('company-logo').src = "/job_logos/{{ job.id }}.png?" + new Date().getTime();
+      });
+    }
+  </script>
+{% endblock %}
+{% block content %}
+<div id="content">
+  {% if message %}
+    <p>{{ message }}</p>
+  {% endif %}
+  <form>
+    <table class="wide">
+      <tr>
+        <td id="second-column" class="center">
+          <p>{{ tr['company_logo'] }}</p>
+          <img id='company-logo' src="/job_logos/{% if job.logo_exists %}{{ job.id }}{% else %}grey{% endif %}.png"/>
+          <label for="image" class="custom-file-upload"><i class="ri-file-upload-line ri-4x"></i></label>
+          <input type="file" name="image" id="image" onChange="readURL(this);"/>
+        </td>
+        <td id='third-column' class="hide">
+          <div id='cropper' class='hide'><img id="working-logo" src="#" alt="{{ tr['company_logo'] }}" /></div>
+          <div id='crop-button' class='hide'><p class="center"><input type="button" onClick="crop();" value="{{ tr['crop'] }}"/></p></div>
+        </td>
+      </tr>
+    </table>
+  </form>
+  <form id="form" action="/pages/edit-job/{{ job.id }}" method="post">
+    <div class="input-container">
+      {{ csrf|safe }}
+      <div class="label">{{ tr['company_name'] }}</div>
+      <input name="name" maxlength="80" value="{{ job.name }}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['url_optional'] }}</div>
+      <input name="url" maxlength="80" value="{{ job.url }}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['location_optional'] }}</div>
+      <input name="location" placeholder="{{ tr['location_placeholder'] }}" maxlength="80" value="{{ job.location }}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['position_optional'] }}</div>
+      <input name="position" placeholder="{{ tr['position_placeholder'] }}" maxlength="80" value="{{ job.position }}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['share_optional'] }}</div>
+      <input name="share" maxlength="80" value="{% if job.share is not none %}{{ '%3.3f'%job.share }}{% endif %}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['vesting_period_optional'] }}</div>
+      <input name="vesting_period" maxlength="80" placeholder="24" value="{% if job.vesting_period is not none %}{{ job.vesting_period }}{% endif %}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['vesting_frequency_optional'] }}</div>
+      <input name="vesting_frequency" maxlength="80" placeholder="24" value="{% if job.vesting_frequency is not none %}{{ job.vesting_frequency }}{% endif %}"/>
+    </div>
+    <div class="input-container">
+      <div class="label">{{ tr['description_optional'] }}</div>
+      <textarea name="description" class="wide" placeholder="{{ tr['description_placeholder'] }}" maxlength="1000">{{ user.description }}</textarea>
+    </div>
+    <div class="input-container checkbox">
+      <input {% if job.active %}checked{% endif %} type="checkbox" name="active" value="true"/>
+      {{ tr['job_active'] }}
+    </div>
+    <div class="input-container checkbox">
+      {% if job.paid %}
+        {{ tr['job_paid']%(job.expiration, job.id) }}
+      {% else %}
+        {{ tr['job_unpaid']%job.id }}
+      {% endif %}
+    </div>
+    <div class="input-container">
+      <input type="submit" value="{{ tr['save_changes'] }}"/>
+    </div>
+  </form>
+  <p><a href="/pages/delete-job/{{ job.id }}">{{ tr['delete_job'] }}</a></p>
+</div>
+{% endblock %}

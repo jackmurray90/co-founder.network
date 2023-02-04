@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from decimal import Decimal
 from datetime import date, timedelta
 from config import DATABASE
-from db import User, LoginCode, Referrer, View, Job, Connection
+from db import User, LoginCode, Referrer, View, Job, Connection, Application
 from time import time, sleep
 from mistune import create_markdown
 from mail import send_email
@@ -37,6 +37,12 @@ def init_profile_for_render(session, user, profile):
       profile.connected = True
     else:
       profile.connection_request_sent = True
+
+def init_job_for_render(session, user, job):
+  if isfile(f'static/job_logos/{job.id}.png'):
+    job.logo_exists = True
+  if user and session.query(Applications).where((Application.user_id == user.id) & (Application.job_id == job.id)).first():
+     job.applied = True
 
 @app.template_filter()
 def render_markdown(m):
@@ -208,6 +214,7 @@ def settings(redirect, session, user, tr):
   user.show_profile = 'show_profile' in request.form
   user.open = 'open' in request.form
   user.receive_connection_emails = 'receive_connection_emails' in request.form
+  user.receive_application_emails = 'receive_application_emails' in request.form
   session.commit()
   if user.username:
     return redirect(f'/{user.username}')
@@ -223,24 +230,133 @@ def settings(redirect, session, user, tr):
   session.commit()
   return redirect('/pages/settings', tr['your_profile_bumped'])
 
+@get('/pages/jobs')
+def jobs(render_template, session, user, tr):
+  log_referrer()
+  jobs = session.query(Job).order_by(Job.id.desc())
+  for job in jobs:
+    init_job_for_render(session, user, job)
+  return render_template('jobs.html', jobs=jobs)
+
+@get('/pages/jobs/<id>')
+def job(render_template, session, user, tr, id):
+  log_referrer()
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.active and (not user or user.id != job.user_id): abort(404)
+  view = session.query(View).filter((View.job_id == job.id) & (View.remote_address == request.remote_addr)).first()
+  if view is None: view = View(job_id=job.id, remote_address=request.remote_addr, timestamp=0)
+  if view.timestamp + 60*60*24 < time():
+    session.add(View(job_id=job.id, remote_address=request.remote_addr, timestamp=int(time())))
+    session.commit()
+  init_job_for_render(session, user, job)
+  return render_template('job.html', job=job)
+
+@get('/pages/new-job')
+def new_job(render_template, session, user, tr):
+  if not user: return redirect('/')
+  job = Job(user_id=user.id)
+  session.add(job)
+  session.commit()
+  return redirect(f'/pages/edit-job/{job.id}')
+
+@get('/pages/edit-job/<id>')
+def edit_job(render_template, session, user, tr, id):
+  if not user: return redirect('/')
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.user_id == user.id: abort(403)
+  return render_template('edit_job.html', job=job)
+
+@post('/pages/edit-job/<id>')
+def edit_job(redirect, session, user, tr, id):
+  if not user: return redirect('/')
+  if len(request.form['name']) > 80: abort(400)
+  if len(request.form['url']) > 80: abort(400)
+  if len(request.form['location']) > 80: abort(400)
+  if len(request.form['position']) > 80: abort(400)
+  if len(request.form['description']) > 1000: abort(400)
+  try:
+    share = int(request.form['share']) if request.form['share'] else None
+    vesting_period = int(request.form['vesting_period']) if request.form['vesting_period'] else None
+    vesting_frequency = int(request.form['vesting_frequency']) if request.form['vesting_frequency'] else None
+  except:
+    abort(400)
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.user_id == user.id: abort(403)
+  job.name = request.form['name']
+  job.url = make_url(request.form['url'])
+  job.location = request.form['location']
+  job.position = request.form['position']
+  job.description = request.form['description']
+  job.share = share
+  job.vesting_period = vesting_period
+  job.vesting_frequency = vesting_frequency
+  job.active = 'active' in request.form
+  session.commit()
+  return redirect(f'/pages/edit-job/{job.id}', tr['job_listing_saved'])
+
+@get('/pages/delete-job/<id>')
+def delete_job(render_template, session, user, tr, id):
+  if not user: return redirect('/')
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.user_id == user.id: abort(403)
+  return render_template('delete_job.html', job=job)
+
+@post('/pages/delete-job/<id>')
+def delete_job(redirect, session, user, tr, id):
+  if not user: return redirect('/')
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.user_id == user.id: abort(403)
+  # TODO: do this with a lock
+  while True:
+    try:
+      job = session.query(Job).where(Job.id == id).first()
+      for view in job.views:
+        session.delete(view)
+      for application in job.applications:
+        session.delete(application)
+      session.delete(job)
+      break
+    except:
+      sleep(1)
+  return redirect('/pages/jobs', tr['job_deleted'])
+
 @post('/pages/connection-request/<id>')
 def connection_request(redirect, session, user, tr, id):
   if not user: abort(403)
   if len(request.form['message']) > 1000: abort(400)
-  try:
-    [profile] = session.query(User).where(User.id == id)
-  except:
-    abort(404)
-  try:
-    [connection] = session.query(Connection).where((Connection.a == user.id) & (Connection.b == profile.id))
-    abort(400)
-  except:
-    pass
-  session.add(Connection(a=user.id, b=profile.id, code=random_128_bit_string()))
+  profile = session.query(User).where(User.id == id).first()
+  if not profile: abort(404)
+  if not profile.open: abort(403)
+  connection = session.query(Connection).where((Connection.a == user.id) & (Connection.b == profile.id)).first()
+  if connection: abort(403)
+  code = random_128_bit_string()
+  session.add(Connection(a=user.id, b=profile.id, code=code))
   session.commit()
   if profile.receive_connection_emails:
     sender = f"connections+{code}@co-founder.network"
     send_email(sender, profile.email, tr['connection_email_subject']%user.name, render_template('emails/connection.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
+  return {'success': True}
+
+@post('/pages/job-application/<id>')
+def job_application(redirect, session, user, tr, id):
+  if not user: abort(403)
+  if len(request.form['message']) > 1000: abort(400)
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.active: abort(404)
+  application = session.query(Application).where((Application.user_id == user.id) & (Application.job_id == job.id)).first()
+  if application: abort(403)
+  code = random_128_bit_string()
+  session.add(Application(user_id=user.id, job_id=job.id, code=code))
+  session.commit()
+  if job.user.receive_application_emails:
+    sender = f'applications+{code}@co-founder.network'
+    send_email(sender, job.user.email, tr['application_email_subject']%user.name, render_template('emails/application.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
   return {'success': True}
 
 @get('/pages/delete')
@@ -251,6 +367,7 @@ def delete(render_template, session, user, tr):
 @post('/pages/delete')
 def delete(redirect, session, user, tr):
   if not user: return redirect('/')
+  # TODO: do this with a lock
   while True:
     try:
       [user] = session.query(User).where(User.id == user.id)
@@ -260,14 +377,14 @@ def delete(redirect, session, user, tr):
         session.delete(login_code)
       for job in user.jobs:
         session.delete(job)
-      for connection in user.connections:
+      for connection in session.query(Connection).where((Connection.a == user.id) | (Connection.b == user.id)):
         session.delete(connection)
-      for connection in user.incoming_connections:
-        session.delete(connection)
+      for application in user.applications:
+        session.delete(application)
       session.delete(user)
       session.commit()
       break
-    except Exception as e:
+    except:
       sleep(1)
   return redirect('/', tr['your_account_was_deleted'])
 

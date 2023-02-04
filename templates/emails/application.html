@@ -1,12 +1,12 @@
 <html>
   <body>
-    <h2>{{ tr['connection_email_header']%user.name }}</h2>
+    <h2>{{ tr['application_email_header']%user.name }}</h2>
     {% if user.username %}
       <p>{{ (tr['link_to_profile']%user.username)|safe }}</p>
     {% else %}
       <p>{{ (tr['link_to_profile']%user.id)|safe }}</p>
     {% endif %}
-    {{ tr['connection_email_content']|safe }}
+    {{ tr['application_email_content']|safe }}
     <p>{{ message|render_markdown|safe }}</p>
     <p><small>{{ tr['email_unsubscribe']|safe }}</small></p>
   </body>

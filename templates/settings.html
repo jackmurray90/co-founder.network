@@ -35,7 +35,6 @@
           document.getElementById('third-column').className = '';
           document.getElementById('cropper').className = '';
           document.getElementById('crop-button').className = '';
-          document.getElementById('message').innerText = '';
         }, 1000);
       }
     }
@@ -46,7 +45,7 @@
         document.getElementById('cropper').className = 'hide';
         document.getElementById('crop-button').className = 'hide';
         if (blob.size > 1024*1024*2) {
-          document.getElementById('message').innerText = '{{ tr["picture_too_large"] }}';
+          alert('{{ tr["picture_too_large"] }}');
           return;
         }
         const formData = new FormData();
@@ -95,7 +94,6 @@
         <td id='third-column' class="hide">
           <div id='cropper' class='hide'><img id="working-profile-picture" src="#" alt="Profile Picture" /></div>
           <div id='crop-button' class='hide'><p class="center"><input type="button" onClick="crop();" value="{{ tr['crop'] }}"/></p></div>
-          <p id="message"></p>
         </td>
       </tr>
     </table>
@@ -117,7 +115,7 @@
     </div>
     <div class="input-container">
       <div class="label">{{ tr['about_optional'] }}</div>
-      <textarea name="about" class="wide" maxlength="1000">{{ user.about }}</textarea>
+      <textarea name="about" class="wide" placeholder="{{ tr['about_placeholder'] }}" maxlength="1000">{{ user.about }}</textarea>
     </div>
     <div class="input-container">
       <div class="label">{{ tr['email_address'] }}</div>
@@ -138,6 +136,10 @@
     <div class="input-container checkbox">
       <input {% if user.receive_connection_emails %}checked{% endif %} type="checkbox" name="receive_connection_emails" value="true"/>
       {{ tr['receive_connection_emails'] }}
+    </div>
+    <div class="input-container checkbox">
+      <input {% if user.receive_application_emails %}checked{% endif %} type="checkbox" name="receive_application_emails" value="true"/>
+      {{ tr['receive_application_emails'] }}
     </div>
     <div class="input-container">
       <input type="submit" value="{{ tr['save_changes'] }}"/>

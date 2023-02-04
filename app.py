@@ -41,8 +41,8 @@ def init_profile_for_render(session, user, profile):
 def init_job_for_render(session, user, job):
   if isfile(f'static/job_logos/{job.id}.png'):
     job.logo_exists = True
-  if user and session.query(Applications).where((Application.user_id == user.id) & (Application.job_id == job.id)).first():
-     job.applied = True
+  if user and session.query(Application).where((Application.user_id == user.id) & (Application.job_id == job.id)).first():
+    job.applied = True
 
 @app.template_filter()
 def render_markdown(m):
@@ -189,6 +189,18 @@ def set_profile_picture(redirect, session, user, tr):
   unlink(f'static/profile_pictures/{temp}')
   return {'result': 'success'}
 
+@post('/pages/set-logo/<id>')
+def set_profile_picture(redirect, session, user, tr, id):
+  if not user: abort(403)
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if not job.user_id == user.id: abort(403)
+  temp = random_128_bit_string()
+  request.files['image'].save(f'static/job_logos/{temp}')
+  system(f"convert static/job_logos/{temp} -resize 128x128 static/job_logos/{id}.png")
+  unlink(f'static/job_logos/{temp}')
+  return {'result': 'success'}
+
 @get('/pages/settings')
 def settings(render_template, session, user, tr):
   if not user: return redirect('/')
@@ -217,8 +229,8 @@ def settings(redirect, session, user, tr):
   user.receive_application_emails = 'receive_application_emails' in request.form
   session.commit()
   if user.username:
-    return redirect(f'/{user.username}')
-  return redirect(f'/{user.id}')
+    return redirect(f'/{user.username}', tr['settings_saved'])
+  return redirect(f'/{user.id}', tr['settings_saved'])
 
 @post('/pages/bump-profile')
 def settings(redirect, session, user, tr):
@@ -237,6 +249,14 @@ def jobs(render_template, session, user, tr):
   for job in jobs:
     init_job_for_render(session, user, job)
   return render_template('jobs.html', jobs=jobs)
+
+@get('/pages/my-jobs')
+def jobs(render_template, session, user, tr):
+  if not user: return redirect('/')
+  jobs = session.query(Job).where(Job.user_id == user.id)
+  for job in jobs:
+    init_job_for_render(session, user, job)
+  return render_template('my_jobs.html', jobs=jobs)
 
 @get('/pages/jobs/<id>')
 def job(render_template, session, user, tr, id):
@@ -266,6 +286,7 @@ def edit_job(render_template, session, user, tr, id):
   job = session.query(Job).where(Job.id == id).first()
   if not job: abort(404)
   if not job.user_id == user.id: abort(403)
+  init_job_for_render(session, user, job)
   return render_template('edit_job.html', job=job)
 
 @post('/pages/edit-job/<id>')
@@ -275,9 +296,9 @@ def edit_job(redirect, session, user, tr, id):
   if len(request.form['url']) > 80: abort(400)
   if len(request.form['location']) > 80: abort(400)
   if len(request.form['position']) > 80: abort(400)
-  if len(request.form['description']) > 1000: abort(400)
+  if len(request.form['description']) > 1500: abort(400)
   try:
-    share = int(request.form['share']) if request.form['share'] else None
+    share = Decimal(request.form['share']) if request.form['share'] else None
     vesting_period = int(request.form['vesting_period']) if request.form['vesting_period'] else None
     vesting_frequency = int(request.form['vesting_frequency']) if request.form['vesting_frequency'] else None
   except:
@@ -320,6 +341,7 @@ def delete_job(redirect, session, user, tr, id):
       for application in job.applications:
         session.delete(application)
       session.delete(job)
+      session.commit()
       break
     except:
       sleep(1)

@@ -6,9 +6,11 @@
   h1 { font-weight: lighter; letter-spacing: 0.2em; font-variant: small-caps; font-family: serif; }
   h3 small { font-weight: normal; }
   .edit { display: block; margin: 0 2em; float: right; font-weight: normal; font-variant: normal; font-size: 16px; letter-spacing: 0; }
-  #profile-picture { width: 64px; vertical-align: middle; border-radius: 50%; margin: 0 1em 0 0.5em; }
+  #profile-picture, #company-logo { width: 64px; vertical-align: middle; border-radius: 50%; margin: 0 1em 0 0.5em; }
   .profile-table { margin-top: 1em; }
   .profile-table td, .profile-table th, .profile-table h1 { padding: 0; margin: 0; border: none; }
+  .tags { font-size: small; margin: 1em 0; }
+  .tags span { display: inline-block; background-color: #ccc; border-radius: 0.3em; padding: 0.2em; margin: 0.3em; }
   .connect-form { float: right; }
   a, a:hover, a:visited, a:active { color: #369; text-decoration: none; }
   #content { margin: 0 auto; max-width: 60em; padding: 0 1em; }
@@ -18,11 +20,13 @@
   input, textarea { font-family: sans-serif; padding: 1em; }
   textarea { height: 10em; }
   .checkbox { padding: 0.66em; border: 1px solid grey; white-space: nowrap; }
+  .grey-border { padding: 0.66em; border: 1px solid grey; }
   .input-container { position: relative; margin: 1em 0; }
   .input-container input, .input-container textarea { width: 100%; }
   .input-container input[type=submit], .input-container input[type=button], .input-container input[type=checkbox], .input-container input.short { width: auto; }
   .label { position: absolute; top: -0.5em; left: 0.5em; background-color: #fff; z-index: 1; padding: 0 0.5em; font-size: small; color: grey; }
   #working-profile-picture { display: block; max-width: 10em; max-height: 10em; }
+  #mini-nav a { margin: 0 2em; white-space: nowrap; }
   #nav { background-color: #123; text-align: center; }
   #nav a, #nav span { display: inline-block; padding: 1em 1em; white-space: nowrap; }
   #nav a, #nav a:hover, #nav a:visited, #nav a:active { color: #9cf; }
@@ -46,8 +50,10 @@
 <meta name=”robots” content="index, follow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta charset="UTF-8"/>
+<link rel="stylesheet" href="/jsuites.css" type="text/css"/>
+<link rel="stylesheet" href="/show-more.min.css" type="text/css"/>
 <script src="/jsuites.js"></script>
-<link rel="stylesheet" href="/jsuites.css" type="text/css" />
+<script src="/showMore.min.js"></script>
 <script>
   const mobileCheck = function() {
     let check = false;
@@ -131,6 +137,9 @@
     `;
     document.body.appendChild(modal);
     return false;
+  }
+  window.onload = function() {
+    new ShowMore('.show-more');
   }
 </script>
 
@@ -220,7 +229,9 @@
   {% endif %}
 
   {% if profile.about %}
-    {{ profile.about|render_markdown|safe }}
+    <div class='show-more' data-config='{"type": "text", "limit": 100, "more": "{{ tr["show_more"] }}", "less": "{{ tr["show_less"] }}"}'>
+      {{ profile.about|render_markdown|safe }}
+    </div>
   {% endif %}
 {% endmacro %}
 
@@ -255,7 +266,7 @@
           </form>
         {% else %}
           {% if user %}
-            {% if user.id != job.id %}
+            {% if user.id != job.user_id %}
               <form class="connect-form" onSubmit="return apply_modal({{ job.id }});">
                 <input type="submit" id="apply-button-{{ job.id }}" value="{{ tr['apply'] }}"/>
               </form>
@@ -272,27 +283,31 @@
     </tr>
   </table>
 
-  {% if job.location %}
-    <p><strong>{{ tr['location'] }}</strong>: {{ job.city }}</p>
-  {% endif %}
-
-  {% if job.position %}
-    <p><strong>{{ tr['position'] }}</strong>: {{ job.position }}</p>
-  {% endif %}
-
-  {% if job.share %}
-    <p><strong>{{ tr['share'] }}</strong>: {{ '%3.3f'%job.share }}%</p>
-  {% endif %}
-
-  {% if job.vesting_period is not none %}
-    <p><strong>{{ tr['vesting_period'] }}</strong>: {{ job.vesting_period }} {{ tr['months'] }}</p>
-    {% if job.vesting_frequency is not none %}
-      <p><strong>{{ tr['vesting_frequency'] }}</strong>: {{ job.vesting_frequency }} {{ tr['months'] }}</p>
+  <div class="tags">
+    {% if job.location %}
+      <span><strong>{{ tr['location'] }}</strong>: {{ job.location }}</span>
     {% endif %}
-  {% endif %}
+
+    {% if job.position %}
+      <span><strong>{{ tr['position'] }}</strong>: {{ job.position }}</span>
+    {% endif %}
+
+    {% if job.share %}
+      <span><strong>{{ tr['share'] }}</strong>: {{ '%3.3f'%job.share }}%</span>
+    {% endif %}
+
+    {% if job.vesting_period is not none %}
+      <span><strong>{{ tr['vesting_period'] }}</strong>: {{ job.vesting_period }} {% if job.vesting_period == 1 %}{{ tr['month'] }}{% else %}{{ tr['months'] }}{% endif %}</span>
+      {% if job.vesting_frequency is not none %}
+        <span><strong>{{ tr['vesting_frequency'] }}</strong>: {{ job.vesting_frequency }} {% if job.vesting_frequency == 1 %}{{ tr['month'] }}{% else %}{{ tr['months'] }}{% endif %}</span>
+      {% endif %}
+    {% endif %}
+  </div>
 
   {% if job.description %}
-    {{ job.description|render_markdown|safe }}
+    <div class='show-more' data-config='{"type": "text", "limit": 100, "more": "{{ tr["show_more"] }}", "less": "{{ tr["show_less"] }}"}'>
+      {{ job.description|render_markdown|safe }}
+    </div>
   {% endif %}
 {% endmacro %}
 

@@ -9,12 +9,9 @@
   {% if message %}
     <p class="center">{{ message }}</p>
   {% endif %}
-  <h1 class="center">{{ tr['jobs'] }}</h1>
+  <h1 class="center">{{ tr['my_jobs'] }}</h1>
   <p class="center" id="mini-nav">
     <a href="/pages/new-job">{{ tr['new_job'] }}</a>
-    {% if user and user.jobs %}
-      <a href="/pages/my-jobs">{{ tr['view_my_jobs'] }}</a>
-    {% endif %}
   </p>
   {% for job in jobs %}
     <div>{{ job_card(job) }}</div>

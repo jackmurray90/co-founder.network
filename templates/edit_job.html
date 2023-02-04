@@ -41,12 +41,30 @@
         const formData = new FormData();
         formData.append('image', blob);
         formData.append('api_key', '{{ user.api_key }}');
-        await fetch('/pages/set-logo/${job.id}`, {
+        await fetch('/pages/set-logo/{{ job.id }}', {
           method: 'POST',
           body: formData
         });
         document.getElementById('company-logo').src = "/job_logos/{{ job.id }}.png?" + new Date().getTime();
       });
+    }
+    function validate() {
+      const share = document.getElementsByName('share')[0].value;
+      if (share && !share.match(/^\d{1,3}(\.\d{1,3})?$/)) {
+        alert('{{ tr["invalid_share"] }}');
+        return false;
+      }
+      const vesting_period = document.getElementsByName('vesting_period')[0].value;
+      if (vesting_period && !vesting_period.match(/^\d+$/)) {
+        alert('{{ tr["invalid_vesting_period"] }}');
+        return false;
+      }
+      const vesting_frequency = document.getElementsByName('vesting_frequency')[0].value;
+      if (vesting_frequency && !vesting_frequency.match(/^\d+$/)) {
+        alert('{{ tr["invalid_vesting_frequency"] }}');
+        return false;
+      }
+      return true;
     }
   </script>
 {% endblock %}
@@ -71,7 +89,7 @@
       </tr>
     </table>
   </form>
-  <form id="form" action="/pages/edit-job/{{ job.id }}" method="post">
+  <form id="form" onSubmit="return validate();" action="/pages/edit-job/{{ job.id }}" method="post">
     <div class="input-container">
       {{ csrf|safe }}
       <div class="label">{{ tr['company_name'] }}</div>
@@ -95,25 +113,25 @@
     </div>
     <div class="input-container">
       <div class="label">{{ tr['vesting_period_optional'] }}</div>
-      <input name="vesting_period" maxlength="80" placeholder="24" value="{% if job.vesting_period is not none %}{{ job.vesting_period }}{% endif %}"/>
+      <input name="vesting_period" maxlength="80" value="{% if job.vesting_period is not none %}{{ job.vesting_period }}{% endif %}"/>
     </div>
     <div class="input-container">
       <div class="label">{{ tr['vesting_frequency_optional'] }}</div>
-      <input name="vesting_frequency" maxlength="80" placeholder="24" value="{% if job.vesting_frequency is not none %}{{ job.vesting_frequency }}{% endif %}"/>
+      <input name="vesting_frequency" maxlength="80" value="{% if job.vesting_frequency is not none %}{{ job.vesting_frequency }}{% endif %}"/>
     </div>
     <div class="input-container">
       <div class="label">{{ tr['description_optional'] }}</div>
-      <textarea name="description" class="wide" placeholder="{{ tr['description_placeholder'] }}" maxlength="1000">{{ user.description }}</textarea>
+      <textarea name="description" class="wide" placeholder="{{ tr['description_placeholder'] }}" maxlength="1000">{{ job.description }}</textarea>
     </div>
     <div class="input-container checkbox">
       <input {% if job.active %}checked{% endif %} type="checkbox" name="active" value="true"/>
       {{ tr['job_active'] }}
     </div>
-    <div class="input-container checkbox">
+    <div class="input-container grey-border">
       {% if job.paid %}
-        {{ tr['job_paid']%(job.expiration, job.id) }}
+        {{ (tr['job_paid']%(job.expiration, job.id))|safe }}
       {% else %}
-        {{ tr['job_unpaid']%job.id }}
+        {{ (tr['job_unpaid']%job.id)|safe }}
       {% endif %}
     </div>
     <div class="input-container">

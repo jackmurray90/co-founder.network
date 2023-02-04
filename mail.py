@@ -19,9 +19,22 @@ def send_email(frm, recipients, subject, content, reply_to=None):
       server.sendmail(frm, recipients, message.as_string())
   Thread(target=thread).start()
 
-def send_raw_email(frm, recipients, message):
+def forward_email(frm, recipients, message):
+  if message['From']:
+    try:
+      message.replace_header('Reply-To', message['From'])
+    except:
+      message.add_header('Reply-To', message['From'])
+  try:
+    message.replace_header('From', frm)
+  except:
+    message.add_header('From', frm)
+  try:
+    message.replace_header('To', recipients)
+  except:
+    message.add_header('To', recipients)
   def thread():
     with SMTP_SSL(SMTP_HOST, SMTP_PORT, context=create_default_context()) as server:
       server.login(SMTP_USERNAME, SMTP_PASSWORD)
-      server.sendmail(frm, recipients, message)
+      server.sendmail(frm, recipients, message.as_string())
   Thread(target=thread).start()

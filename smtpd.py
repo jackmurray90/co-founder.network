@@ -1,7 +1,7 @@
 from aiosmtpd.controller import Controller
 from asyncio import get_event_loop
 from email import message_from_bytes, policy
-from mail import send_raw_email
+from mail import forward_email 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from config import DATABASE
@@ -26,19 +26,7 @@ class Handler:
     with Session(engine) as session:
       for recipient in envelope.rcpt_tos:
         if 'jack@co-founder.network' in recipient:
-          try:
-            message.replace_header('Reply-To', envelope.mail_from)
-          except:
-            message.add_header('Reply-To', envelope.mail_from)
-          try:
-            message.replace_header('From', 'no-reply@co-founder.network')
-          except:
-            message.add_header('From', 'no-reply@co-founder.network')
-          try:
-            message.replace_header('To', 'jack@murray.software')
-          except:
-            message.add_header('To', 'jack@murray.software')
-          send_raw_email('no-reply@co-founder.network', 'jack@murray.software', message)
+          forward_email('no-reply@co-founder.network', 'jack@murray.software', message)
         match = re.search('connections\+([a-zA-Z0-9]+)@co-founder.network', message['To'] or '')
         if match:
           connection = session.query(Connection).where(Connection.code == match.group(1)).first()

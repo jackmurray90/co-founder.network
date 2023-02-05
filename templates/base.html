@@ -10,7 +10,7 @@
   .profile-table { margin-top: 1em; }
   .profile-table td, .profile-table th, .profile-table h1 { padding: 0; margin: 0; border: none; }
   .tags { font-size: small; margin: 1em 0; }
-  .tags span { display: inline-block; background-color: #ccc; border-radius: 0.3em; padding: 0.2em; margin: 0.3em; }
+  .tags span { display: inline-block; background-color: #e0e0e0; border-radius: 0.3em; padding: 0.2em; margin: 0.3em; }
   .connect-form { float: right; }
   a, a:hover, a:visited, a:active { color: #369; text-decoration: none; }
   #content { margin: 0 auto; max-width: 60em; padding: 0 1em; }
@@ -161,6 +161,7 @@
     </form>
   {% else %}
     <a href="/">{{ tr['members'] }}</a>
+    <a href="/pages/jobs">{{ tr['jobs'] }}</a>
     <a href="/pages/sign-up">{{ tr['sign_up'] }}</a>
     <a href="/pages/login">{{ tr['login'] }}</a>
   {% endif %}

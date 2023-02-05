@@ -438,6 +438,10 @@ def delete(redirect, session, user, tr):
       for login_code in user.login_codes:
         session.delete(login_code)
       for job in user.jobs:
+        for job_payment in job.payments:
+          session.delete(job_payment)
+        for application in job.applications:
+          session.delete(application)
         session.delete(job)
       for connection in session.query(Connection).where((Connection.a == user.id) | (Connection.b == user.id)):
         session.delete(connection)

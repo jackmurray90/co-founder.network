@@ -5,7 +5,7 @@ from mail import forward_email
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from config import DATABASE
-from db import User, Connection
+from db import User, Connection, Application
 import re
 import ssl
 
@@ -27,15 +27,21 @@ class Handler:
       for recipient in envelope.rcpt_tos:
         if 'jack@co-founder.network' in recipient:
           forward_email('no-reply@co-founder.network', 'jack@murray.software', message)
-        match = re.search('connections\+([a-zA-Z0-9]+)@co-founder.network', message['To'] or '')
-        if match:
-          connection = session.query(Connection).where(Connection.code == match.group(1)).first()
-          if connection:
-            try:
-              session.add(Connection(a=connection.b, b=connection.a))
-              session.commit()
-            except:
-              pass
+      match = re.search('connections\+([a-zA-Z0-9]+)@co-founder.network', message['To'] or '')
+      if match:
+        connection = session.query(Connection).where(Connection.code == match.group(1)).first()
+        if connection:
+          try:
+            session.add(Connection(a=connection.b, b=connection.a))
+            session.commit()
+          except:
+            pass
+      match = re.search('applications\+([a-zA-Z0-9]+)@co-founder.network', message['To'] or '')
+      if match:
+        application = session.query(Application).where(Application.code == match.group(1)).first()
+        if application:
+          application.responded = True
+          session.commit()
     return '250 Message accepted for delivery'
 
 if __name__ == '__main__':

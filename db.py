@@ -58,6 +58,7 @@ class Job(Base):
   user = relationship('User', back_populates='jobs')
   views = relationship('View')
   applications = relationship('Application')
+  payments = relationship('JobPayment')
   # These two columns for in-memory variables only
   logo_exists = Column(Boolean)
   applied  = Column(Boolean)
@@ -68,7 +69,6 @@ class JobPayment(Base):
   job_id = Column(Integer, ForeignKey('jobs.id'))
   stripe_session_id = Column(String)
   processed = Column(Boolean, default=False)
-  job = relationship('Job')
 
 class Application(Base):
   __tablename__ = 'applications'

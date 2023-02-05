@@ -1,6 +1,6 @@
 <html>
   <body>
-    <h2>{{ tr['application_email_header']%user.name }}</h2>
+    <h2>{{ tr['application_email_header']%(user.name or user.email) }}</h2>
     {% if user.username %}
       <p>{{ (tr['link_to_profile']%user.username)|safe }}</p>
     {% else %}

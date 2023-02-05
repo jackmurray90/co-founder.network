@@ -401,7 +401,7 @@ def connection_request(redirect, session, user, tr, id):
   session.commit()
   if profile.receive_connection_emails:
     sender = f"connections+{code}@co-founder.network"
-    send_email(sender, profile.email, tr['connection_email_subject']%user.name, render_template('emails/connection.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
+    send_email(sender, profile.email, tr['connection_email_subject']%(user.name or user.email), render_template('emails/connection.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
   return {'success': True}
 
 @post('/pages/job-application/<id>')
@@ -418,7 +418,7 @@ def job_application(redirect, session, user, tr, id):
   session.commit()
   if job.user.receive_application_emails:
     sender = f'applications+{code}@co-founder.network'
-    send_email(sender, job.user.email, tr['application_email_subject']%user.name, render_template('emails/application.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
+    send_email(sender, job.user.email, tr['application_email_subject']%(user.name or user.email), render_template('emails/application.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
   return {'success': True}
 
 @get('/pages/delete')

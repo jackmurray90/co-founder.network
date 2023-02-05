@@ -5,12 +5,12 @@ def read(filename):
 
 strings = {
   'about_optional': 'About (markdown, optional)',
-  'about_placeholder': 'Share a little bit about yourself and what you are looking for on Co-Founder Network here',
+  'about_placeholder': 'Share a little bit about yourself and what you are looking for on Co-Founder Network',
   'description_optional': 'Job description (markdown, optional)',
   'description_placeholder': 'Share the responsibilities for the role here, and the kind of skills and qualities you are looking for in an ideal candidate.',
   'job_active': 'Job listing is active.',
-  'job_paid': 'This job listing has been paid for until %s. Click <a target="_blank" href="/pages/generate-job-payment/%d">here</a> to renew for another 30 days.',
-  'job_unpaid': 'This job listing has not been paid for. Click <a target="_blank" href="/pages/generate-job-payment/%d">here</a> to pay for a 30 day listing.',
+  'job_paid': 'This job listing has been paid for until %s. Click <a target="_blank" href="/pages/generate-job-payment/%d">here</a> to renew $5 for another 30 days.',
+  'job_unpaid': 'This job listing has not been paid for. Click <a target="_blank" href="/pages/generate-job-payment/%d">here</a> to pay $5 for a 30 day listing.',
   'error_processing_payment': 'There was an error processing your payment.',
   'payment_successful': 'Your job listing was successfully paid for.',
   'delete_job': 'Delete job',

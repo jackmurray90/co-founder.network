@@ -51,7 +51,7 @@ def render_markdown(m):
 @get('/')
 def landing_page(render_template, session, user, tr):
   log_referrer(session)
-  profiles = session.query(User).order_by(User.bump_timestamp.desc()).limit(100)
+  profiles = session.query(User).where(User.show_profile == True).order_by(User.bump_timestamp.desc()).limit(100)
   for profile in profiles:
     init_profile_for_render(session, user, profile)
   return render_template('members.html', profiles=profiles)
@@ -68,7 +68,7 @@ def terms(render_template, session, user, tr):
 
 @get('/sitemap.xml')
 def sitemap(render_template, session, user, tr):
-  response = render_template('sitemap.xml', users=session.query(User).all())
+  response = render_template('sitemap.xml', users=session.query(User).where(User.show_profile == True), jobs=session.query(Job).where((Job.active == True) & (Job.paid == True) & (Job.expiration >= date.today())))
   response.headers['Content-Type'] = 'text/xml'
   return response
 

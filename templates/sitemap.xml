@@ -8,5 +8,8 @@
       <url><loc>https://co-founder.network/{{ user.id }}</loc></url>
     {% endif %}
   {% endfor %}
+  {% for job in jobs %}
+    <url><loc>https://co-founder.network/pages/jobs/{{ job.id }}</loc></url>
+  {% endfor %}
 </urlset>
 

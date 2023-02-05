@@ -62,6 +62,14 @@ class Job(Base):
   logo_exists = Column(Boolean)
   applied  = Column(Boolean)
 
+class JobPayment(Base):
+  __tablename__ = 'job_payments'
+  id = Column(Integer, primary_key=True)
+  job_id = Column(Integer, ForeignKey('jobs.id'))
+  stripe_session_id = Column(String)
+  processed = Column(Boolean, default=False)
+  job = relationship('Job')
+
 class Application(Base):
   __tablename__ = 'applications'
   user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)

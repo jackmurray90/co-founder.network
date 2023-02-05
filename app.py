@@ -4,20 +4,20 @@ from util import random_128_bit_string
 from sqlalchemy import create_engine
 from decimal import Decimal
 from datetime import date, timedelta
-from config import DATABASE
-from db import User, LoginCode, Referrer, View, Job, Connection, Application
+from config import DATABASE, STRIPE_API_KEY
+from db import User, LoginCode, Referrer, View, Job, Connection, Application, JobPayment
 from time import time, sleep
 from mistune import create_markdown
 from mail import send_email
 from os.path import isfile
 from os import system, unlink
+import stripe
 import re
-
-# print(start_date + timedelta(days=days_in_month))
 
 app = Flask(__name__)
 get, post = csrf(app, create_engine(DATABASE))
 markdown = create_markdown()
+stripe.api_key = STRIPE_API_KEY
 
 def make_url(url):
   url = url.strip()
@@ -245,7 +245,7 @@ def settings(redirect, session, user, tr):
 @get('/pages/jobs')
 def jobs(render_template, session, user, tr):
   log_referrer(session)
-  jobs = session.query(Job).order_by(Job.id.desc())
+  jobs = session.query(Job).where((Job.name != '') & (Job.active == True) & (Job.expiration >= date.today())).order_by(Job.id.desc())
   for job in jobs:
     init_job_for_render(session, user, job)
   return render_template('jobs.html', jobs=jobs)
@@ -271,6 +271,46 @@ def job(render_template, session, user, tr, id):
     session.commit()
   init_job_for_render(session, user, job)
   return render_template('job.html', job=job)
+
+@get('/pages/generate-job-payment/<id>')
+def generate_job_payment(render_template, session, user, tr, id):
+  if not user: return redirect('/')
+  job = session.query(Job).where(Job.id == id).first()
+  if not job: abort(404)
+  if job.user_id != user.id: abort(403)
+  job_payment = JobPayment(job_id=job.id)
+  session.add(job_payment)
+  session.commit()
+  response = stripe.checkout.Session.create(
+    success_url=f"https://co-founder.network/pages/job-payment/{job_payment.id}",
+    line_items=[{"price": "price_1MXyQCLVmaYiDBolchsCKxoO","quantity": 1}],
+    mode="payment",
+    customer_email=user.email
+  )
+  job_payment.stripe_session_id = response['id']
+  session.commit()
+  return redirect(response['url'])
+
+@get('/pages/job-payment/<id>')
+def job_payment(render_template, session, user, tr, id):
+  if not user: return redirect('/')
+  job_payment = session.query(JobPayment).where(JobPayment.id == id).first()
+  if not job_payment: abort(404)
+  job = session.query(Job).where(Job.id == job_payment.job_id).first()
+  if job.user_id != user.id: abort(403)
+  if job_payment.processed:
+    return render_template('job_paid.html', error=False)
+  response = stripe.checkout.Session.retrieve(job_payment.stripe_session_id)
+  if response['payment_status'] != 'paid':
+    return render_template('job_paid.html', error=True)
+  job_payment.processed  = True
+  if job.paid:
+    job.expiration = job.expiration + timedelta(days=30)
+  else:
+    job.expiration = date.today() + timedelta(days=30)
+    job.paid = True
+  session.commit()
+  return render_template('job_paid.html', error=False)
 
 @get('/pages/new-job')
 def new_job(render_template, session, user, tr):

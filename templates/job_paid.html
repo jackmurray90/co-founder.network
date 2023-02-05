@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<div id="content">
+  <p class="center">{% if error %}{{ tr['error_processing_payment'] }}{% else %}{{ tr['payment_successful'] }}{% endif %}</p>
+</div>
+{% endblock %}

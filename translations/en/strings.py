@@ -53,7 +53,7 @@ strings = {
   'cordova_to_verify': ' using the device Co-Founder Network is installed on to verify your e-mail address.',
   'members': 'Members',
   'crop': 'Crop',
-  'cv': 'CV/LinkedIn',
+  'cv': 'CV',
   'cv_optional': 'CV/LinkedIn (optional)',
   'delete_my_account': "Delete my account.",
   'edit_profile': "Edit profile",

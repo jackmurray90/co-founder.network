@@ -51,7 +51,7 @@ def render_markdown(m):
 @get('/')
 def landing_page(render_template, session, user, tr):
   log_referrer(session)
-  profiles = session.query(User).where(User.show_profile == True).order_by(User.bump_timestamp.desc()).limit(100)
+  profiles = session.query(User).where((User.name != '') & (User.show_profile == True)).order_by(User.bump_timestamp.desc()).limit(100)
   for profile in profiles:
     init_profile_for_render(session, user, profile)
   return render_template('members.html', profiles=profiles)
@@ -220,7 +220,7 @@ def settings(redirect, session, user, tr):
   if len(request.form['about']) > 1000: abort(400)
   user.name = request.form['name']
   user.city = request.form['city']
-  user.cv = request.form['cv']
+  user.cv = make_url(request.form['cv'])
   user.about = request.form['about']
   user.show_email = 'show_email' in request.form
   user.show_profile = 'show_profile' in request.form

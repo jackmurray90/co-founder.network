@@ -13,6 +13,7 @@ strings = {
   'job_unpaid': 'This job listing has not been paid for. Click <a target="_blank" href="/pages/generate-job-payment/%d">here</a> to pay $5 for a 30 day listing.',
   'error_processing_payment': 'There was an error processing your payment.',
   'payment_successful': 'Your job listing was successfully paid for.',
+  'delete': 'Delete',
   'delete_job': 'Delete job',
   'account_already_exists': "Account already exists with that e-mail address.",
   'agree_terms_1': 'By checking this box you agree to our',

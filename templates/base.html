@@ -188,6 +188,9 @@
         </h1>
       </td>
       <td>
+        {% if user.admin %}
+          <a href="/pages/delete/{{ profile.id }}">{{ tr['delete'] }}</a>
+        {% endif %}
         {% if profile.connected %}
           <form class="connect-form">
             <input disabled type="button" value="{{ tr['connected'] }}"/>

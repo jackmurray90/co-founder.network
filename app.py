@@ -418,33 +418,39 @@ def job_application(redirect, session, user, tr, id):
     send_email(sender, job.user.email, tr['application_email_subject']%(user.name or user.email), render_template('emails/application.html', tr=tr, user=user, message=request.form['message']), ','.join([sender, user.email]))
   return {'success': True}
 
-@get('/pages/delete')
-def delete(render_template, session, user, tr):
+@get('/pages/delete/<id>')
+def delete(render_template, session, user, tr, id):
   if not user: return redirect('/')
-  return render_template('delete.html')
+  if not (user.admin or user.id == id): abort(403)
+  profile = session.query(User).where(User.id == id).first()
+  if not profile: abort(404)
+  return render_template('delete.html', profile=profile)
 
-@post('/pages/delete')
-def delete(redirect, session, user, tr):
+@post('/pages/delete/<id>')
+def delete(redirect, session, user, tr, id):
   if not user: return redirect('/')
+  if not (user.admin or user.id == id): abort(403)
+  profile = session.query(User).where(User.id == id).first()
+  if not profile: abort(404)
   # TODO: do this with a lock
   while True:
     try:
-      [user] = session.query(User).where(User.id == user.id)
-      for view in user.views:
+      [profile] = session.query(User).where(User.id == profile.id)
+      for view in profile.views:
         session.delete(view)
-      for login_code in user.login_codes:
+      for login_code in profile.login_codes:
         session.delete(login_code)
-      for job in user.jobs:
+      for job in profile.jobs:
         for job_payment in job.payments:
           session.delete(job_payment)
         for application in job.applications:
           session.delete(application)
         session.delete(job)
-      for connection in session.query(Connection).where((Connection.a == user.id) | (Connection.b == user.id)):
+      for connection in session.query(Connection).where((Connection.a == profile.id) | (Connection.b == profile.id)):
         session.delete(connection)
-      for application in user.applications:
+      for application in profile.applications:
         session.delete(application)
-      session.delete(user)
+      session.delete(profile)
       session.commit()
       break
     except:

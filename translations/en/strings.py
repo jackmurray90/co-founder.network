@@ -55,6 +55,8 @@ strings = {
   'crop': 'Crop',
   'cv': 'CV',
   'cv_optional': 'CV/LinkedIn (optional)',
+  'job_listing_cost': 'Job listings are $5 for 30 days.',
+  'email_nospam': "Your e-mail address will not be shared with 3rd party marketers.",
   'delete_my_account': "Delete my account.",
   'edit_profile': "Edit profile",
   'email_address': "E-mail Address",

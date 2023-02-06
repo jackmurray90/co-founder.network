@@ -3,6 +3,7 @@
 <form class="center" action="{% if sign_up %}/pages/sign-up{% else %}/pages/login{% endif %}" method="post">
   {% if sign_up %}
     <h1>{{ tr['sign_up'] }}</h1>
+    <p>{{ tr['email_nospam'] }}</p>
   {% else %}
     <h1>{{ tr['login'] }}</h1>
   {% endif %}

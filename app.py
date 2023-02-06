@@ -75,7 +75,7 @@ def sitemap(render_template, session, user, tr):
 @get('/pages/cordova')
 def cordova(render_template, session, user, tr):
   response = make_response(redirect('/'))
-  response.set_cookie('cordova', 'true')
+  response.set_cookie('cordova', 'true', samesite='Lax', secure=True)
   return response
 
 @get('/pages/cordova/<code>')
@@ -126,7 +126,7 @@ def login(render_template, session, user, tr, code):
   session.delete(login_code)
   session.commit()
   response = make_response(redirect('/pages/settings'))
-  response.set_cookie('api_key', user.api_key)
+  response.set_cookie('api_key', user.api_key, samesite='Lax', secure=True)
   return response
 
 @get('/pages/login')
@@ -158,7 +158,7 @@ def login(redirect, session, user, tr):
 def logout(redirect, session, user, tr):
   if not user: return redirect('/')
   response = redirect('/')
-  response.set_cookie('api_key', '', expires=0)
+  response.set_cookie('api_key', '', expires=int(time())+5, samesite='Lax', secure=True)
   return response
 
 @post('/pages/set-username')

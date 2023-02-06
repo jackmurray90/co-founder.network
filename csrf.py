@@ -1,6 +1,7 @@
 from flask import request, abort, make_response, render_template, redirect
 from util import random_128_bit_string
 from sqlalchemy.orm import Session
+from time import time
 from db import User
 from translations import tr, accepted_languages, default_language
 
@@ -26,7 +27,7 @@ def csrf(app, engine):
             if 'user' not in kwargs:
               kwargs['user'] = user
             response = make_response(render_template(p, tr=tr[language], csrf=csrf, **kwargs))
-            response.set_cookie('message', '', expires=0)
+            response.set_cookie('message', '', expires=int(time())+5, samesite='Lax', secure=True)
             return response
           return f(rt, session, user, tr[language], *args, **kwargs)
     return decorator
@@ -49,7 +50,7 @@ def csrf(app, engine):
             abort(403)
           def r(p, message=''):
             response = make_response(redirect(p))
-            response.set_cookie('message', message)
+            response.set_cookie('message', message, samesite='Lax', secure=True)
             return response
           return f(r, session, user, tr[language], *args, **kwargs)
     return decorator

@@ -125,10 +125,7 @@ def login(render_template, session, user, tr, code):
   user.email_verified = True
   session.delete(login_code)
   session.commit()
-  if user.username:
-    response = make_response(redirect(f'/{user.username}'))
-  else:
-    response = make_response(redirect(f'/{user.id}'))
+  response = make_response(redirect('/pages/settings'))
   response.set_cookie('api_key', user.api_key)
   return response
 
